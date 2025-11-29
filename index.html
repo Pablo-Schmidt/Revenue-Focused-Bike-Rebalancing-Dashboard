@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Revenue-Focused Bike Rebalancing Dashboard</title>
+
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
@@ -12,40 +13,26 @@
             padding: 20px;
         }
         .container { max-width: 1400px; margin: 0 auto; }
+
+        /* Header */
         .header {
             background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
             padding: 30px;
             border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
-            margin-bottom: 20px;
             color: white;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
         #clock {
-            font-size: 26px;
+            font-size: 28px;
             font-weight: bold;
-            color: red;
+            color: #ff1a1a;
         }
 
-        #csvDropzone {
-            border: 3px dashed #6b7280;
-            padding: 30px;
-            text-align: center;
-            color: #374151;
-            font-size: 18px;
-            border-radius: 12px;
-            background: white;
-            margin-bottom: 20px;
-            transition: 0.3s;
-        }
-        #csvDropzone.dragover {
-            border-color: #10b981;
-            background: #ecfdf5;
-            color: #065f46;
-        }
-
+        /* Controls */
         .controls {
             background: white;
             padding: 25px;
@@ -58,7 +45,36 @@
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 20px;
         }
+        .control-item label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #374151;
+        }
+        select, input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+        }
 
+        /* Dropzone */
+        #dropzone {
+            border: 2px dashed #3b82f6;
+            padding: 25px;
+            text-align: center;
+            border-radius: 10px;
+            background: #f8fafc;
+            cursor: pointer;
+            color: #1e40af;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        #dropzone.dragover {
+            background: #dbeafe;
+        }
+
+        /* Stats */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -71,22 +87,10 @@
             border-radius: 10px;
             box-shadow: 0 2px 6px rgba(0,0,0,0.1);
         }
+        .stat-label { color: #6b7280; font-size: 14px; margin-bottom: 5px; }
+        .stat-value { font-size: 32px; font-weight: bold; color: #1f2937; }
 
-        table {
-            width: 100%;
-            background: white;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-        .revenue-badge { 
-            padding: 6px 12px; 
-            border-radius: 20px; 
-            font-size: 12px; 
-            font-weight: bold; 
-        }
-
+        /* Routes */
         .route-header {
             background: white;
             padding: 20px;
@@ -94,16 +98,38 @@
             margin-bottom: 10px;
             box-shadow: 0 2px 6px rgba(0,0,0,0.1);
         }
+        table {
+            width: 100%;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        th {
+            background: #f9fafb;
+            padding: 12px;
+            text-align: left;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        tr:hover { background: #f9fafb; }
 
-        .under { color: #d97706; font-weight: bold; }
-        .over { color: #dc2626; font-weight: bold; }
-
+        /* Revenue badges */
+        .revenue-badge { padding: 6px 12px; border-radius: 20px; font-size: 12px; }
+        .revenue-vip { background: #fef3c7; color: #92400e; }
+        .revenue-high { background: #dbeafe; color: #1e40af; }
+        .revenue-medium { background: #e0e7ff; color: #4338ca; }
+        .revenue-low { background: #f3f4f6; color: #6b7280; }
     </style>
 </head>
+
 <body>
     <div class="container">
 
-        <!-- HEADER WITH CLOCK -->
+        <!-- HEADER WITH RED CLOCK -->
         <div class="header">
             <div>
                 <h1>💰 Revenue-Focused Bike Rebalancing Dashboard</h1>
@@ -112,28 +138,35 @@
             <div id="clock">00:00</div>
         </div>
 
-        <!-- CSV DROPZONE -->
-        <div id="csvDropzone">📂 Drag & Drop CSV Here<br><small>(or click to select)</small></div>
-        <input type="file" id="csvInput" accept=".csv" style="display:none;">
+        <!-- CSV + Google Sheets Loader -->
+        <div id="dropzone">📥 Drop CSV file here or click to upload</div>
 
-        <!-- CONTROLS -->
+        <div class="controls">
+            <label style="font-weight: 600;">📄 Load Google Sheet (public link)</label>
+            <input type="text" id="sheetURL" placeholder="Paste Google Sheet link here...">
+            <button onclick="loadGoogleSheet()" style="margin-top:10px;padding:10px 20px;">Load Sheet</button>
+        </div>
+
+        <!-- MAIN CONTROLS -->
         <div class="controls">
             <div class="control-grid">
                 <div>
                     <label>🕐 Shift Time</label>
                     <select id="shiftSelect" onchange="updateDashboard()">
-                        <option value="morning">Morning Shift</option>
-                        <option value="evening">Evening Shift</option>
+                        <option value="morning">Morning Shift (Day Usage)</option>
+                        <option value="evening">Evening Shift (Night Usage)</option>
                     </select>
                 </div>
+
                 <div>
                     <label>📊 Priority Strategy</label>
                     <select id="strategySelect" onchange="updateDashboard()">
                         <option value="revenue">Revenue Focus</option>
-                        <option value="critical">Critical First</option>
+                        <option value="critical">Critical Only</option>
                         <option value="balanced">Balanced</option>
                     </select>
                 </div>
+
                 <div class="stat-card">
                     <div class="stat-label">Drivers Needed</div>
                     <div class="stat-value" id="driversNeeded">0</div>
@@ -141,14 +174,14 @@
             </div>
         </div>
 
-        <!-- STAT CARDS -->
+        <!-- STATS -->
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-label">⭐ VIP Hubs</div>
                 <div class="stat-value" id="vipHubs">0</div>
             </div>
             <div class="stat-card">
-                <div class="stat-label">🚴 Total Hubs</div>
+                <div class="stat-label">🚴 Total Hubs to Refill</div>
                 <div class="stat-value" id="needRefill">0</div>
             </div>
             <div class="stat-card">
@@ -156,7 +189,7 @@
                 <div class="stat-value" id="criticalCount">0</div>
             </div>
             <div class="stat-card">
-                <div class="stat-label">📦 Total Bikes</div>
+                <div class="stat-label">📦 Total Bikes Needed</div>
                 <div class="stat-value" id="bikesNeeded">0</div>
             </div>
         </div>
@@ -165,57 +198,98 @@
     </div>
 
 <script>
-/* CLOCK */
+/* ------------------------ CLOCK ------------------------ */
 function updateClock() {
     const now = new Date();
-    const text = now.toLocaleString("en-GB", { 
-        day:"2-digit", month:"2-digit", year:"numeric",
-        hour:"2-digit", minute:"2-digit"
-    }).replace(",", "");
-    document.getElementById("clock").textContent = text;
+    const date = now.toLocaleDateString();
+    const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    document.getElementById("clock").textContent = `${date} ${time}`;
 }
 setInterval(updateClock, 1000);
 updateClock();
 
-/* CSV DROPZONE */
-let hubsData = [];
+/* --------------------- DEFAULT DATA --------------------- */
+let hubsData = []; // Will be replaced by CSV or Google Sheet
 
-const dropzone = document.getElementById("csvDropzone");
-const csvInput = document.getElementById("csvInput");
-
-dropzone.onclick = () => csvInput.click();
-
-dropzone.addEventListener("dragover", e => {
-    e.preventDefault();
-    dropzone.classList.add("dragover");
+/* ---------------------- CSV LOADER ---------------------- */
+document.getElementById("dropzone").addEventListener("click", () => {
+    let input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".csv";
+    input.onchange = e => handleCSV(e.target.files[0]);
+    input.click();
 });
-dropzone.addEventListener("dragleave", () => dropzone.classList.remove("dragover"));
-dropzone.addEventListener("drop", e => {
-    e.preventDefault();
-    dropzone.classList.remove("dragover");
-    parseCSV(e.dataTransfer.files[0]);
-});
-csvInput.onchange = () => parseCSV(csvInput.files[0]);
 
-function parseCSV(file) {
-    const reader = new FileReader();
-    reader.onload = e => {
-        const lines = e.target.result.split("\n").map(l => l.trim()).filter(Boolean);
-        hubsData = lines.slice(1).map(row => {
-            const c = row.split(",");
-            return {
-                name: c[0], location: c[1],
-                dayAvg: Number(c[2]), eveningAvg: Number(c[3]),
-                capacity: Number(c[4]), last30DayAvg: Number(c[5]),
-                revenueRank: Number(c[6])
-            };
-        });
+document.getElementById("dropzone").addEventListener("dragover", (e) => {
+    e.preventDefault();
+    e.target.classList.add("dragover");
+});
+
+document.getElementById("dropzone").addEventListener("dragleave", (e) => {
+    e.target.classList.remove("dragover");
+});
+
+document.getElementById("dropzone").addEventListener("drop", (e) => {
+    e.preventDefault();
+    e.target.classList.remove("dragover");
+    handleCSV(e.dataTransfer.files[0]);
+});
+
+/* Parse CSV */
+function handleCSV(file) {
+    let reader = new FileReader();
+    reader.onload = function(e) {
+        const rows = e.target.result.split("\n").map(r => r.split(","));
+        const headers = rows.shift();
+
+        hubsData = rows.map(r => ({
+            name: r[0],
+            location: r[1],
+            dayAvg: Number(r[2]),
+            eveningAvg: Number(r[3]),
+            capacity: Number(r[4]),
+            last30DayAvg: Number(r[5]),
+            revenueRank: Number(r[6])
+        }));
+
         updateDashboard();
     };
     reader.readAsText(file);
 }
 
-/* DASHBOARD */
+/* ------------------- GOOGLE SHEETS LOADER ------------------- */
+async function loadGoogleSheet() {
+    let url = document.getElementById("sheetURL").value.trim();
+
+    if (!url.includes("docs.google.com")) {
+        alert("Please paste a valid Google Sheet link.");
+        return;
+    }
+
+    // Convert sheet link to CSV export format
+    const sheetID = url.match(/\/d\/(.*?)\//)[1];
+    const csvURL = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:csv`;
+
+    const response = await fetch(csvURL);
+    const csvText = await response.text();
+
+    const rows = csvText.split("\n").map(r => r.split(","));
+    rows.shift(); // remove header
+
+    hubsData = rows.map(r => ({
+        name: r[0],
+        location: r[1],
+        dayAvg: Number(r[2]),
+        eveningAvg: Number(r[3]),
+        capacity: Number(r[4]),
+        last30DayAvg: Number(r[5]),
+        revenueRank: Number(r[6])
+    }));
+
+    updateDashboard();
+}
+
+/* -------------------- DASHBOARD LOGIC -------------------- */
 function getRevenueCategory(rank) {
     if (rank <= 5) return "VIP";
     if (rank <= 12) return "HIGH";
@@ -224,104 +298,118 @@ function getRevenueCategory(rank) {
 }
 
 function updateDashboard() {
-    if (!hubsData.length) {
-        document.getElementById("routesContainer").innerHTML =
-            "<p style='padding:20px;'>📂 Upload a CSV to begin.</p>";
-        return;
-    }
+    if (hubsData.length === 0) return;
 
     const shift = document.getElementById("shiftSelect").value;
     const strategy = document.getElementById("strategySelect").value;
 
-    let list = hubsData.map(h => {
-        const use = shift === "morning" ? h.dayAvg : h.eveningAvg;
-        const util = Math.round((use / h.capacity) * 100);
-        const need = Math.max(0, h.capacity - use);
-        const rev = getRevenueCategory(h.revenueRank);
+    let hubsToShow = hubsData.map(hub => {
+        const currentUsage = shift === "morning" ? hub.dayAvg : hub.eveningAvg;
+        const utilizationRate = Math.round((currentUsage / hub.capacity) * 100);
+        const bikesNeeded = Math.max(0, hub.capacity - currentUsage);
+        const revenueCategory = getRevenueCategory(hub.revenueRank);
 
-        let score = 0;
-        if (strategy === "revenue") score = h.last30DayAvg * 100 + util;
-        else if (strategy === "critical") score = util >= 80 ? util : 0;
-        else score = h.last30DayAvg * 50 + util;
+        let priorityScore = hub.last30DayAvg * 100 + utilizationRate;
 
         return {
-            ...h, currentUsage: use,
-            utilizationRate: util,
-            bikesNeeded: need,
-            revenueCategory: rev,
-            priorityScore: score,
-            urgency:
-                util >= 90 ? "CRITICAL" :
-                util >= 70 ? "HIGH" :
-                util >= 50 ? "MEDIUM" : "LOW",
-            shouldRefill:
-                strategy === "critical" ? util >= 80 :
-                strategy === "revenue" ? h.revenueRank <= 15 :
-                util >= 60 || h.revenueRank <= 10
+            ...hub,
+            currentUsage,
+            utilizationRate,
+            bikesNeeded,
+            priorityScore,
+            revenueCategory,
+            shouldRefill: bikesNeeded > 0
         };
-    })
-    .filter(h => h.shouldRefill && h.bikesNeeded > 0)
-    .sort((a, b) => b.priorityScore - a.priorityScore);
+    }).filter(h => h.shouldRefill)
+      .sort((a, b) => b.priorityScore - a.priorityScore);
 
-    /* Route logic 50–54 bikes optimal, target 52 */
-    const MIN = 50, OPT = 52, MAX = 54;
+    // Route assignment with optimal 52 bikes (acceptable 50–54)
+    const OPTIMAL = 52;
+    const MIN = 50;
+    const MAX = 54;
 
-    const routes = [];
-    let current = [];
-    let count = 0;
+    const optimizedRoutes = [];
+    let route = [];
+    let load = 0;
 
-    for (const h of list) {
-        const tooManyBikes = count + h.bikesNeeded > MAX;
-        const tooManyHubs = current.length >= 5;
-
-        if (tooManyBikes || tooManyHubs) {
-            if (current.length) routes.push([...current]);
-            current = [h];
-            count = h.bikesNeeded;
-        } else {
-            current.push(h);
-            count += h.bikesNeeded;
+    hubsToShow.forEach(h => {
+        if (load + h.bikesNeeded > OPTIMAL && load >= MIN) {
+            optimizedRoutes.push([...route]);
+            route = [];
+            load = 0;
         }
-    }
-    if (current.length) routes.push(current);
+        route.push(h);
+        load += h.bikesNeeded;
 
-    /* Stats */
-    document.getElementById("vipHubs").textContent = list.filter(h => h.revenueCategory === "VIP").length;
-    document.getElementById("needRefill").textContent = list.length;
-    document.getElementById("criticalCount").textContent = list.filter(h => h.urgency === "CRITICAL").length;
-    document.getElementById("bikesNeeded").textContent = list.reduce((a,b)=>a+b.bikesNeeded,0);
-    document.getElementById("driversNeeded").textContent = routes.length;
+        if (load >= MAX) {
+            optimizedRoutes.push([...route]);
+            route = [];
+            load = 0;
+        }
+    });
 
+    if (route.length > 0) optimizedRoutes.push(route);
+
+    document.getElementById("driversNeeded").textContent = optimizedRoutes.length;
+    document.getElementById("vipHubs").textContent = hubsToShow.filter(h => h.revenueCategory === "VIP").length;
+    document.getElementById("needRefill").textContent = hubsToShow.length;
+    document.getElementById("criticalCount").textContent = hubsToShow.filter(h => h.utilizationRate >= 90).length;
+    document.getElementById("bikesNeeded").textContent = hubsToShow.reduce((s, h) => s + h.bikesNeeded, 0);
+
+    renderRoutes(optimizedRoutes);
+}
+
+/* -------------------- RENDER ROUTES -------------------- */
+function renderRoutes(routes) {
     const container = document.getElementById("routesContainer");
     container.innerHTML = "";
 
+    if (routes.length === 0) {
+        container.innerHTML = "<h3>All hubs balanced!</h3>";
+        return;
+    }
+
     routes.forEach((route, i) => {
-        const total = route.reduce((a,b)=>a+b.bikesNeeded,0);
-        let warn = "";
-        if (total < MIN) warn = `<span class='under'>⚠ Under (${total})</span>`;
-        else if (total > MAX) warn = `<span class='over'>⚠ Over (${total})</span>`;
-        else warn = `<span style="color:#059669;font-weight:bold">✓ Optimal (${total}/52)</span>`;
+        const total = route.reduce((s, h) => s + h.bikesNeeded, 0);
+        const OPTIMAL = 52;
+
+        let status = "✓ Optimal (52)";
+        if (total < 50) status = "⚠️ Too Few (<50)";
+        if (total > 54) status = "⚠️ Too Many (>54)";
 
         let html = `
             <div class="route-header">
-                <h3>🚗 Driver ${i+1} — ${route.length} hubs — ${warn}</h3>
+                <h3>🚗 Driver ${i + 1} — ${total} bikes (${status})</h3>
             </div>
-            <table><tbody>
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th><th>Tier</th><th>Name</th><th>Loc</th>
+                        <th>30d</th><th>Now</th><th>Cap</th><th>%</th><th>Bikes</th>
+                    </tr>
+                </thead>
+                <tbody>
         `;
 
-        route.forEach((h, idx) => {
+        route.forEach((hub, idx) => {
+            const badgeClass = {
+                VIP: "revenue-vip",
+                HIGH: "revenue-high",
+                MEDIUM: "revenue-medium",
+                LOW: "revenue-low"
+            }[hub.revenueCategory];
+
             html += `
                 <tr>
-                    <td>${idx+1}</td>
-                    <td>${h.revenueCategory}</td>
-                    <td>${h.name}</td>
-                    <td>${h.location}</td>
-                    <td>${h.last30DayAvg}</td>
-                    <td>${h.currentUsage}</td>
-                    <td>${h.capacity}</td>
-                    <td>${h.utilizationRate}%</td>
-                    <td style="color:#059669">+${h.bikesNeeded}</td>
-                    <td>${h.urgency}</td>
+                    <td>${idx + 1}</td>
+                    <td><span class="revenue-badge ${badgeClass}">${hub.revenueCategory}</span></td>
+                    <td>${hub.name}</td>
+                    <td>${hub.location}</td>
+                    <td>${hub.last30DayAvg}</td>
+                    <td>${hub.currentUsage}</td>
+                    <td>${hub.capacity}</td>
+                    <td>${hub.utilizationRate}%</td>
+                    <td>${hub.bikesNeeded}</td>
                 </tr>
             `;
         });
@@ -330,7 +418,7 @@ function updateDashboard() {
         container.innerHTML += html;
     });
 }
-
 </script>
+
 </body>
 </html>
