@@ -21,7 +21,7 @@ body {
 }
 
 .container { 
-    max-width: 1400px; 
+    max-width: 1600px; 
     margin: 0 auto; 
 }
 
@@ -66,7 +66,7 @@ body {
 
 .control-grid {
     display: grid; 
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 20px;
 }
 
@@ -78,7 +78,7 @@ label {
     font-size: 14px;
 }
 
-select, input[type="text"] {
+select, input[type="text"], input[type="number"] {
     width: 100%; 
     padding: 10px; 
     border: 1px solid #d1d5db;
@@ -88,7 +88,7 @@ select, input[type="text"] {
     transition: border-color 0.2s;
 }
 
-select:focus, input[type="text"]:focus {
+select:focus, input[type="text"]:focus, input[type="number"]:focus {
     outline: none;
     border-color: #3b82f6;
 }
@@ -115,7 +115,7 @@ button:disabled {
 }
 
 .hint-text {
-    margin-top: 10px;
+    margin-top: 8px;
     font-size: 12px;
     color: #6b7280;
     line-height: 1.5;
@@ -149,7 +149,7 @@ button:disabled {
 /* ---------- STATS GRID ---------- */
 .stats-grid {
     display: grid; 
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 15px; 
     margin-bottom: 20px;
 }
@@ -169,29 +169,35 @@ button:disabled {
 
 .stat-label { 
     color: #6b7280; 
-    font-size: 14px; 
+    font-size: 13px; 
     margin-bottom: 8px;
     font-weight: 500;
 }
 
 .stat-value { 
-    font-size: 32px; 
+    font-size: 28px; 
     font-weight: bold; 
     color: #1f2937;
 }
 
 /* ---------- ROUTE DISPLAY ---------- */
 .route-header {
-    background: white; 
+    background: linear-gradient(135deg, #059669 0%, #10b981 100%);
     padding: 20px; 
     border-radius: 10px;
     margin-bottom: 10px; 
     box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    color: white;
 }
 
 .route-header h3 {
-    font-size: 18px;
-    color: #1f2937;
+    font-size: 20px;
+    margin-bottom: 5px;
+}
+
+.route-header p {
+    font-size: 14px;
+    opacity: 0.9;
 }
 
 /* ---------- TABLES ---------- */
@@ -200,24 +206,25 @@ table {
     background: white; 
     border-radius: 10px;
     overflow: hidden; 
-    margin-bottom: 20px;
+    margin-bottom: 25px;
     box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
 
 th {
     background: #f9fafb; 
-    padding: 12px; 
+    padding: 12px 10px; 
     text-align: left;
     border-bottom: 2px solid #e5e7eb;
     font-weight: 600;
     color: #374151;
-    font-size: 13px;
+    font-size: 12px;
+    white-space: nowrap;
 }
 
 td {
-    padding: 12px; 
+    padding: 12px 10px; 
     border-bottom: 1px solid #f3f4f6;
-    font-size: 14px;
+    font-size: 13px;
     color: #1f2937;
 }
 
@@ -231,9 +238,9 @@ tr:last-child td {
 
 /* ---------- REVENUE BADGES ---------- */
 .revenue-badge { 
-    padding: 6px 12px; 
+    padding: 4px 10px; 
     border-radius: 20px; 
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
     display: inline-block;
 }
@@ -256,6 +263,13 @@ tr:last-child td {
 .revenue-low { 
     background: #f3f4f6; 
     color: #6b7280; 
+}
+
+/* ---------- COORDINATES ---------- */
+.coordinates {
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    color: #6b7280;
 }
 
 /* ---------- EMPTY STATE ---------- */
@@ -291,15 +305,15 @@ tr:last-child td {
     }
     
     .stats-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
     }
     
     table {
-        font-size: 12px;
+        font-size: 11px;
     }
     
     th, td {
-        padding: 8px;
+        padding: 8px 6px;
     }
 }
 </style>
@@ -312,7 +326,7 @@ tr:last-child td {
 <div class="header">
     <div>
         <h1>💰 Revenue-Focused Bike Rebalancing Dashboard</h1>
-        <p>Prioritize high-traffic hubs to maximize trips and profits</p>
+        <p>Select top revenue hotspots for optimal shift planning (1-3 drivers, 5-7 hubs each)</p>
     </div>
     <div id="clock">00:00</div>
 </div>
@@ -329,7 +343,7 @@ tr:last-child td {
     <button onclick="loadGoogleSheet()">Load Sheet</button>
     <p class="hint-text">
         ⓘ Make sure the sheet is set to "Anyone with the link can view"<br>
-        Expected columns: Hub Name, Location, Day Avg, Evening Avg, Capacity, 30d Avg, Revenue Rank
+        Expected columns: Hub Name, Location, Latitude, Longitude, Area, Day Avg, Evening Avg, Capacity, 30d Avg, Revenue Rank
     </p>
 </div>
 
@@ -345,20 +359,27 @@ tr:last-child td {
         </div>
 
         <div>
-            <label>📊 Priority Strategy</label>
-            <select id="strategySelect" onchange="updateDashboard()">
-                <option value="revenue">Revenue Focus (Hotspot Priority)</option>
-                <option value="critical">Critical Only (90%+ Full)</option>
-                <option value="balanced">Balanced (Mix All Factors)</option>
+            <label>🚗 Number of Drivers</label>
+            <select id="driversCount" onchange="updateDashboard()">
+                <option value="1">1 Driver</option>
+                <option value="2">2 Drivers</option>
+                <option value="3">3 Drivers</option>
             </select>
-            <p class="hint-text" style="margin-top: 5px;">
-                Revenue Focus uses 30-day hotspot data + revenue ranking
-            </p>
         </div>
 
-        <div class="stat-card">
-            <div class="stat-label">🚗 Drivers Needed</div>
-            <div class="stat-value" id="driversNeeded">0</div>
+        <div>
+            <label>📍 Hubs per Driver</label>
+            <input type="number" id="hubsPerDriver" value="5" min="5" max="7" onchange="updateDashboard()">
+            <p class="hint-text">Ideal: 5 hubs, Max: 7 hubs</p>
+        </div>
+
+        <div>
+            <label>📊 Priority Strategy</label>
+            <select id="strategySelect" onchange="updateDashboard()">
+                <option value="revenue">Revenue Rank Priority</option>
+                <option value="hotspot">30-Day Hotspot Priority</option>
+                <option value="critical">Critical Utilization</option>
+            </select>
         </div>
     </div>
 </div>
@@ -366,19 +387,23 @@ tr:last-child td {
 <!-- STATISTICS CARDS -->
 <div class="stats-grid">
     <div class="stat-card">
+        <div class="stat-label">🚗 Active Drivers</div>
+        <div class="stat-value" id="activeDrivers">0</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">📍 Total Hubs</div>
+        <div class="stat-value" id="totalHubs">0</div>
+    </div>
+    <div class="stat-card">
         <div class="stat-label">⭐ VIP Hubs</div>
         <div class="stat-value" id="vipHubs">0</div>
     </div>
     <div class="stat-card">
-        <div class="stat-label">🚴 Total Hubs to Refill</div>
-        <div class="stat-value" id="needRefill">0</div>
+        <div class="stat-label">📈 Avg 30d Trips</div>
+        <div class="stat-value" id="avgHotspot">0</div>
     </div>
     <div class="stat-card">
-        <div class="stat-label">🔥 Critical Hubs</div>
-        <div class="stat-value" id="criticalCount">0</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-label">📦 Total Bikes Needed</div>
+        <div class="stat-label">🚴 Bikes to Deploy</div>
         <div class="stat-value" id="bikesNeeded">0</div>
     </div>
 </div>
@@ -425,7 +450,7 @@ function parseCSV(csv) {
         if (char === '"') {
             if (inQuotes && nextChar === '"') {
                 currentField += '"';
-                i++; // Skip next quote
+                i++;
             } else {
                 inQuotes = !inQuotes;
             }
@@ -434,7 +459,7 @@ function parseCSV(csv) {
             currentField = "";
         } else if ((char === "\n" || char === "\r") && !inQuotes) {
             if (char === "\r" && nextChar === "\n") {
-                i++; // Skip \n in \r\n
+                i++;
             }
             if (currentField.length > 0 || currentRow.length > 0) {
                 currentRow.push(currentField.trim());
@@ -449,7 +474,6 @@ function parseCSV(csv) {
         }
     }
 
-    // Handle last field and row
     if (currentField.length > 0 || currentRow.length > 0) {
         currentRow.push(currentField.trim());
         if (currentRow.some(field => field.length > 0)) {
@@ -545,17 +569,20 @@ function processCSV(csvText) {
     const headers = rows[0];
     const dataRows = rows.slice(1);
 
-    // Parse data rows
+    // Parse data rows - now expecting 10 columns
     hubsData = dataRows
-        .filter(row => row.length >= 7 && row[0].trim().length > 0)
+        .filter(row => row.length >= 10 && row[0].trim().length > 0)
         .map(row => ({
             name: row[0] || "Unknown",
             location: row[1] || "Unknown",
-            dayAvg: Number(row[2]) || 0,
-            eveningAvg: Number(row[3]) || 0,
-            capacity: Number(row[4]) || 50,
-            last30DayAvg: Number(row[5]) || 0,
-            revenueRank: Number(row[6]) || 999
+            latitude: row[2] || "",
+            longitude: row[3] || "",
+            area: row[4] || "Unknown Area",
+            dayAvg: Number(row[5]) || 0,
+            eveningAvg: Number(row[6]) || 0,
+            capacity: Number(row[7]) || 50,
+            last30DayAvg: Number(row[8]) || 0,
+            revenueRank: Number(row[9]) || 999
         }));
 
     if (hubsData.length === 0) {
@@ -659,32 +686,29 @@ function updateDashboard() {
 
     const shift = document.getElementById("shiftSelect").value;
     const strategy = document.getElementById("strategySelect").value;
+    const driversCount = Number(document.getElementById("driversCount").value);
+    const hubsPerDriver = Number(document.getElementById("hubsPerDriver").value);
+    const totalHubsNeeded = driversCount * hubsPerDriver;
 
     // Calculate metrics for each hub
-    let hubsToShow = hubsData.map(hub => {
+    let hubsWithMetrics = hubsData.map(hub => {
         const currentUsage = shift === "morning" ? hub.dayAvg : hub.eveningAvg;
         const utilizationRate = Math.round((currentUsage / hub.capacity) * 100);
         const bikesNeeded = Math.max(0, hub.capacity - currentUsage);
         const revenueCategory = getRevenueCategory(hub.revenueRank);
         
-        // FIXED: Priority score calculation based on revenue ranking and hotspot data
-        // Lower revenue rank = higher priority (rank 1 is best)
-        // Higher 30-day average = more popular hotspot
+        // Priority score based on strategy
         let priorityScore = 0;
         
         if (strategy === "revenue") {
-            // Revenue focus: prioritize by revenue rank (lower is better), then by 30-day avg
+            // Lower rank = higher priority
             priorityScore = (1000 - hub.revenueRank * 10) + hub.last30DayAvg;
+        } else if (strategy === "hotspot") {
+            // Prioritize by 30-day average trips
+            priorityScore = hub.last30DayAvg * 100 + (1000 - hub.revenueRank * 5);
         } else if (strategy === "critical") {
-            // Critical only: only include hubs at 90%+ utilization
-            if (utilizationRate >= 90) {
-                priorityScore = (1000 - hub.revenueRank * 10) + utilizationRate;
-            } else {
-                priorityScore = 0;
-            }
-        } else if (strategy === "balanced") {
-            // Balanced: mix of revenue rank, 30-day avg, and utilization
-            priorityScore = (500 - hub.revenueRank * 5) + (hub.last30DayAvg * 10) + utilizationRate;
+            // Prioritize by utilization rate
+            priorityScore = utilizationRate * 10 + (1000 - hub.revenueRank * 5);
         }
 
         return {
@@ -697,62 +721,48 @@ function updateDashboard() {
             shouldRefill: bikesNeeded > 0
         };
     })
-    .filter(h => h.shouldRefill && h.priorityScore > 0)
+    .filter(h => h.shouldRefill)
     .sort((a, b) => {
-        // Sort by revenue rank first (VIP hubs first), then by priority score
-        if (a.revenueRank !== b.revenueRank) {
+        // Primary sort by revenue rank for VIP priority
+        if (strategy === "revenue" && a.revenueRank !== b.revenueRank) {
             return a.revenueRank - b.revenueRank;
         }
+        // Secondary sort by priority score
         return b.priorityScore - a.priorityScore;
     });
 
+    // Select only the top hubs needed for the shift
+    const selectedHubs = hubsWithMetrics.slice(0, totalHubsNeeded);
+
     /* =====================================
-       ROUTE OPTIMIZATION
+       DISTRIBUTE HUBS ACROSS DRIVERS
        ===================================== */
-    const OPTIMAL_LOAD = 52;
-    const MIN_LOAD = 50;
-    const MAX_LOAD = 54;
-
     const routes = [];
-    let currentRoute = [];
-    let currentLoad = 0;
-
-    hubsToShow.forEach(hub => {
-        // If adding this hub exceeds optimal and we're at minimum, start new route
-        if (currentLoad + hub.bikesNeeded > OPTIMAL_LOAD && currentLoad >= MIN_LOAD) {
-            routes.push([...currentRoute]);
-            currentRoute = [];
-            currentLoad = 0;
+    for (let i = 0; i < driversCount; i++) {
+        const start = i * hubsPerDriver;
+        const end = start + hubsPerDriver;
+        const driverHubs = selectedHubs.slice(start, end);
+        
+        if (driverHubs.length > 0) {
+            routes.push(driverHubs);
         }
-
-        // Add hub to current route
-        currentRoute.push(hub);
-        currentLoad += hub.bikesNeeded;
-
-        // If we've hit maximum, force new route
-        if (currentLoad >= MAX_LOAD) {
-            routes.push([...currentRoute]);
-            currentRoute = [];
-            currentLoad = 0;
-        }
-    });
-
-    // Add remaining hubs as final route
-    if (currentRoute.length > 0) {
-        routes.push(currentRoute);
     }
 
     /* =====================================
        UPDATE STATISTICS
        ===================================== */
-    document.getElementById("driversNeeded").textContent = routes.length;
+    document.getElementById("activeDrivers").textContent = routes.length;
+    document.getElementById("totalHubs").textContent = selectedHubs.length;
     document.getElementById("vipHubs").textContent = 
-        hubsToShow.filter(h => h.revenueCategory === "VIP").length;
-    document.getElementById("needRefill").textContent = hubsToShow.length;
-    document.getElementById("criticalCount").textContent = 
-        hubsToShow.filter(h => h.utilizationRate >= 90).length;
+        selectedHubs.filter(h => h.revenueCategory === "VIP").length;
+    
+    const avgHotspot = selectedHubs.length > 0 
+        ? (selectedHubs.reduce((sum, h) => sum + h.last30DayAvg, 0) / selectedHubs.length).toFixed(1)
+        : 0;
+    document.getElementById("avgHotspot").textContent = avgHotspot;
+    
     document.getElementById("bikesNeeded").textContent = 
-        hubsToShow.reduce((sum, h) => sum + h.bikesNeeded, 0);
+        selectedHubs.reduce((sum, h) => sum + h.bikesNeeded, 0);
 
     // Render routes
     renderRoutes(routes);
@@ -768,8 +778,8 @@ function renderRoutes(routes) {
     if (routes.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
-                <h3>✅ All hubs are balanced!</h3>
-                <p>No rebalancing needed at this time.</p>
+                <h3>✅ No routes to display</h3>
+                <p>Please upload data or adjust your settings.</p>
             </div>
         `;
         return;
@@ -777,41 +787,29 @@ function renderRoutes(routes) {
 
     routes.forEach((route, routeIndex) => {
         const totalBikes = route.reduce((sum, h) => sum + h.bikesNeeded, 0);
-        
-        let statusIcon = "✅";
-        let statusText = "Optimal (50-54 bikes)";
-        let statusColor = "#10b981";
-        
-        if (totalBikes < 50) {
-            statusIcon = "⚠️";
-            statusText = `Too Few (${totalBikes} bikes)`;
-            statusColor = "#f59e0b";
-        } else if (totalBikes > 54) {
-            statusIcon = "⚠️";
-            statusText = `Too Many (${totalBikes} bikes)`;
-            statusColor = "#ef4444";
-        }
+        const avgRevRank = (route.reduce((sum, h) => sum + h.revenueRank, 0) / route.length).toFixed(1);
+        const avgHotspot = (route.reduce((sum, h) => sum + h.last30DayAvg, 0) / route.length).toFixed(1);
 
         let html = `
             <div class="route-header">
-                <h3>
-                    🚗 Driver ${routeIndex + 1} — ${totalBikes} bikes 
-                    <span style="color: ${statusColor}">${statusIcon} ${statusText}</span>
-                </h3>
+                <h3>🚗 Driver ${routeIndex + 1} — ${route.length} Hubs — ${totalBikes} Bikes</h3>
+                <p>Avg Revenue Rank: #${avgRevRank} | Avg 30d Trips: ${avgHotspot}/day</p>
             </div>
             <table>
                 <thead>
                     <tr>
-                        <th>#</th>
-                        <th>Revenue Tier</th>
-                        <th>Revenue Rank</th>
+                        <th>Stop</th>
+                        <th>Tier</th>
+                        <th>Rank</th>
                         <th>Hub Name</th>
+                        <th>Area</th>
                         <th>Location</th>
-                        <th>30d Hotspot Avg</th>
+                        <th>Coordinates</th>
+                        <th>30d Avg</th>
                         <th>Current</th>
                         <th>Capacity</th>
                         <th>Util %</th>
-                        <th>Bikes Needed</th>
+                        <th>Bikes</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -830,12 +828,14 @@ function renderRoutes(routes) {
                     </td>
                     <td><strong>#${hub.revenueRank}</strong></td>
                     <td><strong>${hub.name}</strong></td>
+                    <td>${hub.area}</td>
                     <td>${hub.location}</td>
-                    <td><strong>${hub.last30DayAvg.toFixed(1)}</strong> trips/day</td>
+                    <td class="coordinates">${hub.latitude}, ${hub.longitude}</td>
+                    <td><strong>${hub.last30DayAvg.toFixed(1)}</strong></td>
                     <td>${hub.currentUsage}</td>
                     <td>${hub.capacity}</td>
                     <td>
-                        <strong style="color: ${hub.utilizationRate >= 90 ? '#ef4444' : hub.utilizationRate >= 75 ? '#f59e0b' : '#6b7280'}">
+                        <strong style="color: ${hub.utilizationRate >= 90 ? '#ef4444' : hub.utilizationRate >= 75 ? '#f59e0b' : '#10b981'}">
                             ${hub.utilizationRate}%
                         </strong>
                     </td>
