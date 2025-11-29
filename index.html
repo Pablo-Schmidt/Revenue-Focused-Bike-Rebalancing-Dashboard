@@ -347,10 +347,13 @@ tr:last-child td {
         <div>
             <label>📊 Priority Strategy</label>
             <select id="strategySelect" onchange="updateDashboard()">
-                <option value="revenue">Revenue Focus</option>
-                <option value="critical">Critical Only</option>
-                <option value="balanced">Balanced</option>
+                <option value="revenue">Revenue Focus (Hotspot Priority)</option>
+                <option value="critical">Critical Only (90%+ Full)</option>
+                <option value="balanced">Balanced (Mix All Factors)</option>
             </select>
+            <p class="hint-text" style="margin-top: 5px;">
+                Revenue Focus uses 30-day hotspot data + revenue ranking
+            </p>
         </div>
 
         <div class="stat-card">
@@ -664,14 +667,24 @@ function updateDashboard() {
         const bikesNeeded = Math.max(0, hub.capacity - currentUsage);
         const revenueCategory = getRevenueCategory(hub.revenueRank);
         
-        // Priority score calculation
-        let priorityScore = hub.last30DayAvg * 100 + utilizationRate;
+        // FIXED: Priority score calculation based on revenue ranking and hotspot data
+        // Lower revenue rank = higher priority (rank 1 is best)
+        // Higher 30-day average = more popular hotspot
+        let priorityScore = 0;
         
-        // Apply strategy modifiers
-        if (strategy === "critical" && utilizationRate < 90) {
-            priorityScore = 0; // Filter out non-critical
+        if (strategy === "revenue") {
+            // Revenue focus: prioritize by revenue rank (lower is better), then by 30-day avg
+            priorityScore = (1000 - hub.revenueRank * 10) + hub.last30DayAvg;
+        } else if (strategy === "critical") {
+            // Critical only: only include hubs at 90%+ utilization
+            if (utilizationRate >= 90) {
+                priorityScore = (1000 - hub.revenueRank * 10) + utilizationRate;
+            } else {
+                priorityScore = 0;
+            }
         } else if (strategy === "balanced") {
-            priorityScore = (hub.last30DayAvg * 50) + (utilizationRate * 2);
+            // Balanced: mix of revenue rank, 30-day avg, and utilization
+            priorityScore = (500 - hub.revenueRank * 5) + (hub.last30DayAvg * 10) + utilizationRate;
         }
 
         return {
@@ -685,7 +698,13 @@ function updateDashboard() {
         };
     })
     .filter(h => h.shouldRefill && h.priorityScore > 0)
-    .sort((a, b) => b.priorityScore - a.priorityScore);
+    .sort((a, b) => {
+        // Sort by revenue rank first (VIP hubs first), then by priority score
+        if (a.revenueRank !== b.revenueRank) {
+            return a.revenueRank - b.revenueRank;
+        }
+        return b.priorityScore - a.priorityScore;
+    });
 
     /* =====================================
        ROUTE OPTIMIZATION
@@ -785,9 +804,10 @@ function renderRoutes(routes) {
                     <tr>
                         <th>#</th>
                         <th>Revenue Tier</th>
+                        <th>Revenue Rank</th>
                         <th>Hub Name</th>
                         <th>Location</th>
-                        <th>30d Avg</th>
+                        <th>30d Hotspot Avg</th>
                         <th>Current</th>
                         <th>Capacity</th>
                         <th>Util %</th>
@@ -808,13 +828,14 @@ function renderRoutes(routes) {
                             ${hub.revenueCategory}
                         </span>
                     </td>
+                    <td><strong>#${hub.revenueRank}</strong></td>
                     <td><strong>${hub.name}</strong></td>
                     <td>${hub.location}</td>
-                    <td>${hub.last30DayAvg.toFixed(1)}</td>
+                    <td><strong>${hub.last30DayAvg.toFixed(1)}</strong> trips/day</td>
                     <td>${hub.currentUsage}</td>
                     <td>${hub.capacity}</td>
                     <td>
-                        <strong style="color: ${hub.utilizationRate >= 90 ? '#ef4444' : '#6b7280'}">
+                        <strong style="color: ${hub.utilizationRate >= 90 ? '#ef4444' : hub.utilizationRate >= 75 ? '#f59e0b' : '#6b7280'}">
                             ${hub.utilizationRate}%
                         </strong>
                     </td>
