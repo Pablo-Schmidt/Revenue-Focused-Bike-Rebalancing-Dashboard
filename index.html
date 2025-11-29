@@ -6,79 +6,302 @@
 <title>Revenue-Focused Bike Rebalancing Dashboard</title>
 
 <style>
-/* ---------- (same styling you already had) ---------- */
-* { margin: 0; padding: 0; box-sizing: border-box; }
+/* ---------- GLOBAL RESET ---------- */
+* { 
+    margin: 0; 
+    padding: 0; 
+    box-sizing: border-box; 
+}
+
 body { 
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
     background: #f3f4f6;
     padding: 20px;
+    min-height: 100vh;
 }
-.container { max-width: 1400px; margin: 0 auto; }
 
+.container { 
+    max-width: 1400px; 
+    margin: 0 auto; 
+}
+
+/* ---------- HEADER ---------- */
 .header {
     background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
-    padding: 30px; border-radius: 12px; color: white;
-    margin-bottom: 20px; box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
-    display: flex; justify-content: space-between; align-items: center;
+    padding: 30px; 
+    border-radius: 12px; 
+    color: white;
+    margin-bottom: 20px; 
+    box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
 }
-#clock { font-size: 28px; font-weight: bold; color: #ff1a1a; }
 
-.controls {
-    background: white; padding: 25px; border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px;
+.header h1 {
+    font-size: 28px;
+    margin-bottom: 8px;
 }
+
+.header p {
+    font-size: 16px;
+    opacity: 0.9;
+}
+
+#clock { 
+    font-size: 28px; 
+    font-weight: bold; 
+    color: #fbbf24;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* ---------- CONTROLS ---------- */
+.controls {
+    background: white; 
+    padding: 25px; 
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
+    margin-bottom: 20px;
+}
+
 .control-grid {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    display: grid; 
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 20px;
 }
-label { font-weight: 600; margin-bottom: 8px; color: #374151; display: block; }
+
+label { 
+    font-weight: 600; 
+    margin-bottom: 8px; 
+    color: #374151; 
+    display: block;
+    font-size: 14px;
+}
+
 select, input[type="text"] {
-    width: 100%; padding: 10px; border: 1px solid #d1d5db;
-    border-radius: 8px; font-size: 14px;
+    width: 100%; 
+    padding: 10px; 
+    border: 1px solid #d1d5db;
+    border-radius: 8px; 
+    font-size: 14px;
+    background: white;
+    transition: border-color 0.2s;
 }
 
-/* dropzone */
+select:focus, input[type="text"]:focus {
+    outline: none;
+    border-color: #3b82f6;
+}
+
+button {
+    padding: 10px 20px;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    transition: background 0.2s;
+}
+
+button:hover {
+    background: #2563eb;
+}
+
+button:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+}
+
+.hint-text {
+    margin-top: 10px;
+    font-size: 12px;
+    color: #6b7280;
+    line-height: 1.5;
+}
+
+/* ---------- DROPZONE ---------- */
 #dropzone {
-    border: 2px dashed #3b82f6; padding: 25px; text-align: center;
-    border-radius: 10px; background: #f8fafc; cursor: pointer;
-    color: #1e40af; font-weight: bold; margin-bottom: 20px;
+    border: 2px dashed #3b82f6; 
+    padding: 30px; 
+    text-align: center;
+    border-radius: 10px; 
+    background: #f8fafc; 
+    cursor: pointer;
+    color: #1e40af; 
+    font-weight: bold; 
+    margin-bottom: 20px;
+    transition: all 0.3s;
 }
-#dropzone.dragover { background: #dbeafe; }
 
-/* stats */
-.stats-grid {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 15px; margin-bottom: 20px;
+#dropzone:hover {
+    background: #eff6ff;
+    border-color: #2563eb;
 }
+
+#dropzone.dragover { 
+    background: #dbeafe;
+    border-color: #1e40af;
+    transform: scale(1.02);
+}
+
+/* ---------- STATS GRID ---------- */
+.stats-grid {
+    display: grid; 
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px; 
+    margin-bottom: 20px;
+}
+
 .stat-card {
-    background: white; padding: 20px; border-radius: 10px;
+    background: white; 
+    padding: 20px; 
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.stat-label { 
+    color: #6b7280; 
+    font-size: 14px; 
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.stat-value { 
+    font-size: 32px; 
+    font-weight: bold; 
+    color: #1f2937;
+}
+
+/* ---------- ROUTE DISPLAY ---------- */
+.route-header {
+    background: white; 
+    padding: 20px; 
+    border-radius: 10px;
+    margin-bottom: 10px; 
     box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
-.stat-label { color: #6b7280; font-size: 14px; margin-bottom: 5px; }
-.stat-value { font-size: 32px; font-weight: bold; color: #1f2937; }
 
-.route-header {
-    background: white; padding: 20px; border-radius: 10px;
-    margin-bottom: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+.route-header h3 {
+    font-size: 18px;
+    color: #1f2937;
 }
+
+/* ---------- TABLES ---------- */
 table {
-    width: 100%; background: white; border-radius: 10px;
-    overflow: hidden; margin-bottom: 20px;
+    width: 100%; 
+    background: white; 
+    border-radius: 10px;
+    overflow: hidden; 
+    margin-bottom: 20px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
-th {
-    background: #f9fafb; padding: 12px; text-align: left;
-    border-bottom: 2px solid #e5e7eb;
-}
-td {
-    padding: 12px; border-bottom: 1px solid #f3f4f6;
-}
-tr:hover { background: #f9fafb; }
 
-.revenue-badge { padding: 6px 12px; border-radius: 20px; font-size: 12px; }
-.revenue-vip { background: #fef3c7; color: #92400e; }
-.revenue-high { background: #dbeafe; color: #1e40af; }
-.revenue-medium { background: #e0e7ff; color: #4338ca; }
-.revenue-low { background: #f3f4f6; color: #6b7280; }
+th {
+    background: #f9fafb; 
+    padding: 12px; 
+    text-align: left;
+    border-bottom: 2px solid #e5e7eb;
+    font-weight: 600;
+    color: #374151;
+    font-size: 13px;
+}
+
+td {
+    padding: 12px; 
+    border-bottom: 1px solid #f3f4f6;
+    font-size: 14px;
+    color: #1f2937;
+}
+
+tr:hover { 
+    background: #f9fafb; 
+}
+
+tr:last-child td {
+    border-bottom: none;
+}
+
+/* ---------- REVENUE BADGES ---------- */
+.revenue-badge { 
+    padding: 6px 12px; 
+    border-radius: 20px; 
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.revenue-vip { 
+    background: #fef3c7; 
+    color: #92400e; 
+}
+
+.revenue-high { 
+    background: #dbeafe; 
+    color: #1e40af; 
+}
+
+.revenue-medium { 
+    background: #e0e7ff; 
+    color: #4338ca; 
+}
+
+.revenue-low { 
+    background: #f3f4f6; 
+    color: #6b7280; 
+}
+
+/* ---------- EMPTY STATE ---------- */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.empty-state h3 {
+    font-size: 24px;
+    color: #10b981;
+    margin-bottom: 10px;
+}
+
+.empty-state p {
+    color: #6b7280;
+    font-size: 16px;
+}
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width: 768px) {
+    .header {
+        flex-direction: column;
+        text-align: center;
+        gap: 15px;
+    }
+    
+    .control-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    table {
+        font-size: 12px;
+    }
+    
+    th, td {
+        padding: 8px;
+    }
+}
 </style>
 </head>
 
@@ -94,13 +317,20 @@ tr:hover { background: #f9fafb; }
     <div id="clock">00:00</div>
 </div>
 
-<!-- CSV LOADER -->
-<div id="dropzone">📥 Drop CSV file here or click to upload</div>
+<!-- CSV DROPZONE -->
+<div id="dropzone">
+    📥 Drop CSV file here or click to upload
+</div>
 
+<!-- GOOGLE SHEET LOADER -->
 <div class="controls">
     <label>📄 Load Google Sheet (public link)</label>
     <input type="text" id="sheetURL" placeholder="Paste Google Sheet link here...">
-    <button onclick="loadGoogleSheet()" style="margin-top:10px;padding:10px 20px;">Load Sheet</button>
+    <button onclick="loadGoogleSheet()">Load Sheet</button>
+    <p class="hint-text">
+        ⓘ Make sure the sheet is set to "Anyone with the link can view"<br>
+        Expected columns: Hub Name, Location, Day Avg, Evening Avg, Capacity, 30d Avg, Revenue Rank
+    </p>
 </div>
 
 <!-- MAIN CONTROLS -->
@@ -124,135 +354,281 @@ tr:hover { background: #f9fafb; }
         </div>
 
         <div class="stat-card">
-            <div class="stat-label">Drivers Needed</div>
+            <div class="stat-label">🚗 Drivers Needed</div>
             <div class="stat-value" id="driversNeeded">0</div>
         </div>
     </div>
 </div>
 
-<!-- STATS -->
+<!-- STATISTICS CARDS -->
 <div class="stats-grid">
-    <div class="stat-card"><div class="stat-label">⭐ VIP Hubs</div><div class="stat-value" id="vipHubs">0</div></div>
-    <div class="stat-card"><div class="stat-label">🚴 Total Hubs to Refill</div><div class="stat-value" id="needRefill">0</div></div>
-    <div class="stat-card"><div class="stat-label">🔥 Critical Hubs</div><div class="stat-value" id="criticalCount">0</div></div>
-    <div class="stat-card"><div class="stat-label">📦 Total Bikes Needed</div><div class="stat-value" id="bikesNeeded">0</div></div>
+    <div class="stat-card">
+        <div class="stat-label">⭐ VIP Hubs</div>
+        <div class="stat-value" id="vipHubs">0</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">🚴 Total Hubs to Refill</div>
+        <div class="stat-value" id="needRefill">0</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">🔥 Critical Hubs</div>
+        <div class="stat-value" id="criticalCount">0</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">📦 Total Bikes Needed</div>
+        <div class="stat-value" id="bikesNeeded">0</div>
+    </div>
 </div>
 
+<!-- ROUTES CONTAINER -->
 <div id="routesContainer"></div>
 
 </div>
 
 <script>
-/* -------- CLOCK -------- */
+/* =====================================
+   CLOCK FUNCTIONALITY
+   ===================================== */
 function updateClock() {
     const now = new Date();
-    document.getElementById("clock").textContent =
-        now.toLocaleDateString() + " " +
-        now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const date = now.toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric', 
+        year: 'numeric' 
+    });
+    const time = now.toLocaleTimeString('en-US', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        hour12: true
+    });
+    document.getElementById("clock").textContent = `${date} ${time}`;
 }
-setInterval(updateClock, 1000); updateClock();
+setInterval(updateClock, 1000);
+updateClock();
 
-/* ------------ CSV PARSER (SAFE) ------------- */
+/* =====================================
+   CSV PARSER (MANUAL, SAFE)
+   ===================================== */
 function parseCSV(csv) {
     const rows = [];
-    let cur = "", row = [], inQuotes = false;
+    let currentField = "";
+    let currentRow = [];
+    let inQuotes = false;
 
-    for (let char of csv) {
+    for (let i = 0; i < csv.length; i++) {
+        const char = csv[i];
+        const nextChar = csv[i + 1];
+
         if (char === '"') {
-            inQuotes = !inQuotes;
+            if (inQuotes && nextChar === '"') {
+                currentField += '"';
+                i++; // Skip next quote
+            } else {
+                inQuotes = !inQuotes;
+            }
         } else if (char === "," && !inQuotes) {
-            row.push(cur.trim());
-            cur = "";
+            currentRow.push(currentField.trim());
+            currentField = "";
         } else if ((char === "\n" || char === "\r") && !inQuotes) {
-            if (cur.length > 0 || row.length > 0) {
-                row.push(cur.trim());
-                rows.push(row);
-                row = [];
-                cur = "";
+            if (char === "\r" && nextChar === "\n") {
+                i++; // Skip \n in \r\n
+            }
+            if (currentField.length > 0 || currentRow.length > 0) {
+                currentRow.push(currentField.trim());
+                if (currentRow.some(field => field.length > 0)) {
+                    rows.push(currentRow);
+                }
+                currentRow = [];
+                currentField = "";
             }
         } else {
-            cur += char;
+            currentField += char;
         }
     }
-    if (cur.length > 0) row.push(cur.trim());
-    if (row.length > 0) rows.push(row);
+
+    // Handle last field and row
+    if (currentField.length > 0 || currentRow.length > 0) {
+        currentRow.push(currentField.trim());
+        if (currentRow.some(field => field.length > 0)) {
+            rows.push(currentRow);
+        }
+    }
+
     return rows;
 }
 
-/* ------------ GLOBAL DATA ------------ */
+/* =====================================
+   GLOBAL DATA STORAGE
+   ===================================== */
 let hubsData = [];
 
-/* ------------ FILE INPUT ------------ */
+/* =====================================
+   FILE UPLOAD HANDLERS
+   ===================================== */
 document.getElementById("dropzone").onclick = () => {
     const input = document.createElement("input");
     input.type = "file";
     input.accept = ".csv";
-    input.onchange = e => loadCSVFile(e.target.files[0]);
+    input.onchange = e => {
+        if (e.target.files[0]) {
+            loadCSVFile(e.target.files[0]);
+        }
+    };
     input.click();
 };
 
 document.getElementById("dropzone").addEventListener("dragover", e => {
-    e.preventDefault(); e.target.classList.add("dragover");
-});
-document.getElementById("dropzone").addEventListener("dragleave", e => {
-    e.target.classList.remove("dragover");
-});
-document.getElementById("dropzone").addEventListener("drop", e => {
     e.preventDefault();
-    e.target.classList.remove("dragover");
-    loadCSVFile(e.dataTransfer.files[0]);
+    e.stopPropagation();
+    e.currentTarget.classList.add("dragover");
 });
 
-/* ------------ HANDLE CSV FILE ------------ */
+document.getElementById("dropzone").addEventListener("dragleave", e => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.currentTarget.classList.remove("dragover");
+});
+
+document.getElementById("dropzone").addEventListener("drop", e => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.currentTarget.classList.remove("dragover");
+    
+    if (e.dataTransfer.files.length > 0) {
+        loadCSVFile(e.dataTransfer.files[0]);
+    }
+});
+
+/* =====================================
+   LOAD CSV FILE
+   ===================================== */
 function loadCSVFile(file) {
+    if (!file) {
+        alert("No file selected");
+        return;
+    }
+
+    if (!file.name.endsWith('.csv')) {
+        alert("Please select a CSV file");
+        return;
+    }
+
     const reader = new FileReader();
-    reader.onload = e => processCSV(e.target.result);
+    reader.onload = e => {
+        try {
+            processCSV(e.target.result);
+        } catch (error) {
+            console.error("Error processing CSV:", error);
+            alert("Error processing CSV file. Please check the format.");
+        }
+    };
+    reader.onerror = () => {
+        alert("Error reading file");
+    };
     reader.readAsText(file);
 }
 
-/* ------------ PROCESS CSV TEXT ------------ */
+/* =====================================
+   PROCESS CSV TEXT
+   ===================================== */
 function processCSV(csvText) {
     const rows = parseCSV(csvText);
-    const headers = rows.shift();
+    
+    if (rows.length < 2) {
+        alert("CSV file appears to be empty or invalid");
+        return;
+    }
 
-    hubsData = rows.map(r => ({
-        name: r[0],
-        location: r[1],
-        dayAvg: Number(r[2]),
-        eveningAvg: Number(r[3]),
-        capacity: Number(r[4]),
-        last30DayAvg: Number(r[5]),
-        revenueRank: Number(r[6])
-    }));
+    const headers = rows[0];
+    const dataRows = rows.slice(1);
 
+    // Parse data rows
+    hubsData = dataRows
+        .filter(row => row.length >= 7 && row[0].trim().length > 0)
+        .map(row => ({
+            name: row[0] || "Unknown",
+            location: row[1] || "Unknown",
+            dayAvg: Number(row[2]) || 0,
+            eveningAvg: Number(row[3]) || 0,
+            capacity: Number(row[4]) || 50,
+            last30DayAvg: Number(row[5]) || 0,
+            revenueRank: Number(row[6]) || 999
+        }));
+
+    if (hubsData.length === 0) {
+        alert("No valid data found in CSV");
+        return;
+    }
+
+    console.log(`Loaded ${hubsData.length} hubs`);
     updateDashboard();
 }
 
-/* ------------ GOOGLE SHEET LOADER ------------ */
+/* =====================================
+   GOOGLE SHEET LOADER
+   ===================================== */
 async function loadGoogleSheet() {
-    let url = document.getElementById("sheetURL").value.trim();
+    const btn = event.target;
+    const originalText = btn.textContent;
+    btn.textContent = "Loading...";
+    btn.disabled = true;
 
-    if (!url.includes("docs.google.com")) {
-        alert("Please paste a valid Google Sheet public link.");
-        return;
+    try {
+        let url = document.getElementById("sheetURL").value.trim();
+
+        if (!url) {
+            alert("Please paste a Google Sheet URL");
+            return;
+        }
+
+        if (!url.includes("docs.google.com")) {
+            alert("Please paste a valid Google Sheet public link.");
+            return;
+        }
+
+        const match = url.match(/\/d\/([a-zA-Z0-9-_]+)/);
+        if (!match) {
+            alert("Could not extract Sheet ID. Check your URL.");
+            return;
+        }
+
+        const sheetID = match[1];
+        const csvURL = `https://docs.google.com/spreadsheets/d/${sheetID}/export?format=csv`;
+
+        console.log("Fetching:", csvURL);
+        const response = await fetch(csvURL);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const text = await response.text();
+        
+        if (!text || text.length < 10) {
+            throw new Error("Sheet appears to be empty");
+        }
+
+        processCSV(text);
+        alert("✅ Google Sheet loaded successfully!");
+        
+    } catch (error) {
+        console.error("Error loading Google Sheet:", error);
+        alert(
+            "❌ Error loading sheet. Make sure:\n\n" +
+            "1. The sheet is set to 'Anyone with the link can view'\n" +
+            "2. You copied the full URL from the address bar\n" +
+            "3. The sheet has the correct format\n\n" +
+            `Error: ${error.message}`
+        );
+    } finally {
+        btn.textContent = originalText;
+        btn.disabled = false;
     }
-
-    const match = url.match(/\/d\/([a-zA-Z0-9-_]+)/);
-    if (!match) {
-        alert("Could not extract Sheet ID. Check your URL.");
-        return;
-    }
-
-    const sheetID = match[1];
-    const csvURL = `https://docs.google.com/spreadsheets/d/${sheetID}/export?format=csv`;
-
-    const response = await fetch(csvURL);
-    const text = await response.text();
-
-    processCSV(text);
 }
 
-/* --------- HELPER -------- */
+/* =====================================
+   HELPER FUNCTIONS
+   ===================================== */
 function getRevenueCategory(rank) {
     if (rank <= 5) return "VIP";
     if (rank <= 12) return "HIGH";
@@ -260,18 +636,43 @@ function getRevenueCategory(rank) {
     return "LOW";
 }
 
-/* ---------- UPDATE DASHBOARD ---------- */
+function getRevenueBadgeClass(category) {
+    switch(category) {
+        case "VIP": return "revenue-vip";
+        case "HIGH": return "revenue-high";
+        case "MEDIUM": return "revenue-medium";
+        default: return "revenue-low";
+    }
+}
+
+/* =====================================
+   UPDATE DASHBOARD
+   ===================================== */
 function updateDashboard() {
-    if (hubsData.length === 0) return;
+    if (hubsData.length === 0) {
+        console.log("No data to display");
+        return;
+    }
 
     const shift = document.getElementById("shiftSelect").value;
+    const strategy = document.getElementById("strategySelect").value;
 
+    // Calculate metrics for each hub
     let hubsToShow = hubsData.map(hub => {
         const currentUsage = shift === "morning" ? hub.dayAvg : hub.eveningAvg;
         const utilizationRate = Math.round((currentUsage / hub.capacity) * 100);
         const bikesNeeded = Math.max(0, hub.capacity - currentUsage);
         const revenueCategory = getRevenueCategory(hub.revenueRank);
-        const priorityScore = hub.last30DayAvg * 100 + utilizationRate;
+        
+        // Priority score calculation
+        let priorityScore = hub.last30DayAvg * 100 + utilizationRate;
+        
+        // Apply strategy modifiers
+        if (strategy === "critical" && utilizationRate < 90) {
+            priorityScore = 0; // Filter out non-critical
+        } else if (strategy === "balanced") {
+            priorityScore = (hub.last30DayAvg * 50) + (utilizationRate * 2);
+        }
 
         return {
             ...hub,
@@ -283,95 +684,159 @@ function updateDashboard() {
             shouldRefill: bikesNeeded > 0
         };
     })
-    .filter(h => h.shouldRefill)
+    .filter(h => h.shouldRefill && h.priorityScore > 0)
     .sort((a, b) => b.priorityScore - a.priorityScore);
 
-    /* ------- ROUTE OPTIMIZATION ------- */
-    const OPTIMAL = 52;
-    const MIN = 50;
-    const MAX = 54;
+    /* =====================================
+       ROUTE OPTIMIZATION
+       ===================================== */
+    const OPTIMAL_LOAD = 52;
+    const MIN_LOAD = 50;
+    const MAX_LOAD = 54;
 
     const routes = [];
-    let current = [], load = 0;
+    let currentRoute = [];
+    let currentLoad = 0;
 
-    hubsToShow.forEach(h => {
-        if (load + h.bikesNeeded > OPTIMAL && load >= MIN) {
-            routes.push([...current]); current = []; load = 0;
+    hubsToShow.forEach(hub => {
+        // If adding this hub exceeds optimal and we're at minimum, start new route
+        if (currentLoad + hub.bikesNeeded > OPTIMAL_LOAD && currentLoad >= MIN_LOAD) {
+            routes.push([...currentRoute]);
+            currentRoute = [];
+            currentLoad = 0;
         }
-        current.push(h); load += h.bikesNeeded;
 
-        if (load >= MAX) {
-            routes.push([...current]); current = []; load = 0;
+        // Add hub to current route
+        currentRoute.push(hub);
+        currentLoad += hub.bikesNeeded;
+
+        // If we've hit maximum, force new route
+        if (currentLoad >= MAX_LOAD) {
+            routes.push([...currentRoute]);
+            currentRoute = [];
+            currentLoad = 0;
         }
     });
 
-    if (current.length > 0) routes.push(current);
+    // Add remaining hubs as final route
+    if (currentRoute.length > 0) {
+        routes.push(currentRoute);
+    }
 
+    /* =====================================
+       UPDATE STATISTICS
+       ===================================== */
     document.getElementById("driversNeeded").textContent = routes.length;
-    document.getElementById("vipHubs").textContent = hubsToShow.filter(h => h.revenueCategory === "VIP").length;
+    document.getElementById("vipHubs").textContent = 
+        hubsToShow.filter(h => h.revenueCategory === "VIP").length;
     document.getElementById("needRefill").textContent = hubsToShow.length;
-    document.getElementById("criticalCount").textContent = hubsToShow.filter(h => h.utilizationRate >= 90).length;
-    document.getElementById("bikesNeeded").textContent = hubsToShow.reduce((s, h) => s + h.bikesNeeded, 0);
+    document.getElementById("criticalCount").textContent = 
+        hubsToShow.filter(h => h.utilizationRate >= 90).length;
+    document.getElementById("bikesNeeded").textContent = 
+        hubsToShow.reduce((sum, h) => sum + h.bikesNeeded, 0);
 
+    // Render routes
     renderRoutes(routes);
 }
 
-/* -------- RENDER ROUTES -------- */
+/* =====================================
+   RENDER ROUTES TABLE
+   ===================================== */
 function renderRoutes(routes) {
     const container = document.getElementById("routesContainer");
     container.innerHTML = "";
 
     if (routes.length === 0) {
-        container.innerHTML = "<h3>All hubs balanced!</h3>";
+        container.innerHTML = `
+            <div class="empty-state">
+                <h3>✅ All hubs are balanced!</h3>
+                <p>No rebalancing needed at this time.</p>
+            </div>
+        `;
         return;
     }
 
-    routes.forEach((route, i) => {
-        const total = route.reduce((s, h) => s + h.bikesNeeded, 0);
-        let status = total < 50 ? "⚠️ Too Few (<50)" :
-                     total > 54 ? "⚠️ Too Many (>54)" :
-                     "✓ Optimal (52)";
+    routes.forEach((route, routeIndex) => {
+        const totalBikes = route.reduce((sum, h) => sum + h.bikesNeeded, 0);
+        
+        let statusIcon = "✅";
+        let statusText = "Optimal (50-54 bikes)";
+        let statusColor = "#10b981";
+        
+        if (totalBikes < 50) {
+            statusIcon = "⚠️";
+            statusText = `Too Few (${totalBikes} bikes)`;
+            statusColor = "#f59e0b";
+        } else if (totalBikes > 54) {
+            statusIcon = "⚠️";
+            statusText = `Too Many (${totalBikes} bikes)`;
+            statusColor = "#ef4444";
+        }
 
         let html = `
             <div class="route-header">
-                <h3>🚗 Driver ${i + 1} — ${total} bikes (${status})</h3>
+                <h3>
+                    🚗 Driver ${routeIndex + 1} — ${totalBikes} bikes 
+                    <span style="color: ${statusColor}">${statusIcon} ${statusText}</span>
+                </h3>
             </div>
             <table>
-            <thead>
-                <tr>
-                    <th>#</th><th>Tier</th><th>Name</th><th>Loc</th>
-                    <th>30d</th><th>Now</th><th>Cap</th><th>%</th><th>Bikes</th>
-                </tr>
-            </thead>
-            <tbody>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Revenue Tier</th>
+                        <th>Hub Name</th>
+                        <th>Location</th>
+                        <th>30d Avg</th>
+                        <th>Current</th>
+                        <th>Capacity</th>
+                        <th>Util %</th>
+                        <th>Bikes Needed</th>
+                    </tr>
+                </thead>
+                <tbody>
         `;
 
-        route.forEach((hub, idx) => {
-            const badge =
-                hub.revenueCategory === "VIP" ? "revenue-vip" :
-                hub.revenueCategory === "HIGH" ? "revenue-high" :
-                hub.revenueCategory === "MEDIUM" ? "revenue-medium" :
-                "revenue-low";
-
+        route.forEach((hub, stopIndex) => {
+            const badgeClass = getRevenueBadgeClass(hub.revenueCategory);
+            
             html += `
                 <tr>
-                    <td>${idx + 1}</td>
-                    <td><span class="revenue-badge ${badge}">${hub.revenueCategory}</span></td>
-                    <td>${hub.name}</td>
+                    <td><strong>${stopIndex + 1}</strong></td>
+                    <td>
+                        <span class="revenue-badge ${badgeClass}">
+                            ${hub.revenueCategory}
+                        </span>
+                    </td>
+                    <td><strong>${hub.name}</strong></td>
                     <td>${hub.location}</td>
-                    <td>${hub.last30DayAvg}</td>
+                    <td>${hub.last30DayAvg.toFixed(1)}</td>
                     <td>${hub.currentUsage}</td>
                     <td>${hub.capacity}</td>
-                    <td>${hub.utilizationRate}%</td>
-                    <td>${hub.bikesNeeded}</td>
+                    <td>
+                        <strong style="color: ${hub.utilizationRate >= 90 ? '#ef4444' : '#6b7280'}">
+                            ${hub.utilizationRate}%
+                        </strong>
+                    </td>
+                    <td><strong>${hub.bikesNeeded}</strong></td>
                 </tr>
             `;
         });
 
-        html += "</tbody></table>";
+        html += `
+                </tbody>
+            </table>
+        `;
+
         container.innerHTML += html;
     });
 }
+
+/* =====================================
+   INITIALIZATION
+   ===================================== */
+console.log("Revenue-Focused Bike Rebalancing Dashboard loaded");
+console.log("Waiting for CSV or Google Sheet data...");
 </script>
 
 </body>
