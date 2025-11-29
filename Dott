@@ -315,120 +315,87 @@
             const totalBikes = hubsToShow.reduce((sum, h) => sum + h.bikesNeeded, 0);
             const driversNeeded = optimizedRoutes.length;
 
+            // Update stats in UI
             document.getElementById('vipHubs').textContent = vipCount;
-            document.getElementById('needRefill').textContent = hubsToShow.length;
             document.getElementById('criticalCount').textContent = criticalCount;
             document.getElementById('bikesNeeded').textContent = totalBikes;
             document.getElementById('driversNeeded').textContent = driversNeeded;
-            document.getElementById('downloadMessage').textContent = 
-                hubsToShow.length > 0 
-                    ? `${driversNeeded} driver(s) • ${hubsToShow.length} hubs • ${totalBikes} bikes`
-                    : 'No hubs need refilling with current strategy';
+            document.getElementById('needRefill').textContent = hubsToShow.length;
 
-            // Display routes
+            // Show routes
             const routesContainer = document.getElementById('routesContainer');
             routesContainer.innerHTML = '';
 
-            if (optimizedRoutes.length === 0) {
-                routesContainer.innerHTML = '<div class="route-header"><h3>✅ All hubs are optimized for current strategy!</h3></div>';
-                return;
-            }
+            optimizedRoutes.forEach((route, i) => {
+                const routeDiv = document.createElement('div');
+                routeDiv.classList.add('route-header');
 
-            optimizedRoutes.forEach((route, driverIndex) => {
-                const totalBikes = route.reduce((sum, h) => sum + h.bikesNeeded, 0);
-                const vipInRoute = route.filter(h => h.revenueCategory === 'VIP').length;
-                const vanLoads = Math.ceil(totalBikes / 12);
-                const bikeUtilization = Math.round((totalBikes / 52) * 100);
+                const totalRouteBikes = route.reduce((sum, h) => sum + h.bikesNeeded, 0);
+                const vipHubsInRoute = route.filter(h => h.revenueCategory === 'VIP').length;
+                const priorityStar = vipHubsInRoute > 0 ? '⭐' : '';
 
-                let routeHTML = `
-                    <div class="route-header">
-                        <div>
-                            <h3>🚗 Driver ${driverIndex + 1} Route - ${route.length} Hubs • ${totalBikes}/52 Bikes (${bikeUtilization}%)${vipInRoute > 0 ? ` • ${vipInRoute} ⭐ VIP` : ''}</h3>
-                            <div style="color: #6b7280; font-size: 14px; margin-top: 5px;">
-                                🚐 Van Loads: ${vanLoads} trip${vanLoads > 1 ? 's' : ''} needed (12 bikes/load)
-                                ${totalBikes > 52 ? ' • ⚠️ OVER CAPACITY' : totalBikes < 40 ? ' • ✓ Light Load' : ' • ✓ Optimal Load'}
-                            </div>
-                        </div>
-                    </div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th style="width: 40px;">Stop</th>
-                                <th>Revenue Tier</th>
-                                <th>Hub Name</th>
-                                <th>Location</th>
-                                <th>30-Day Avg</th>
-                                <th>Current</th>
-                                <th>Capacity</th>
-                                <th>Usage %</th>
-                                <th>Bikes Needed</th>
-                                <th>Urgency</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+                routeDiv.innerHTML = `
+                    <h3>Driver ${i+1} Route ${priorityStar}</h3>
+                    <div>${route.length} hubs, ${totalRouteBikes} bikes</div>
                 `;
+                routesContainer.appendChild(routeDiv);
 
-                route.forEach((hub, stopIndex) => {
-                    const categoryClass = hub.revenueCategory === 'VIP' ? 'revenue-vip' :
-                                        hub.revenueCategory === 'HIGH' ? 'revenue-high' :
-                                        hub.revenueCategory === 'MEDIUM' ? 'revenue-medium' : 'revenue-low';
-                    
-                    routeHTML += `
-                        <tr>
-                            <td style="text-align: center; font-weight: bold; color: #3b82f6;">${stopIndex + 1}</td>
-                            <td>
-                                <span class="revenue-badge ${categoryClass}">
-                                    ${hub.revenueCategory === 'VIP' ? '⭐ ' : ''}${hub.revenueCategory}
-                                </span>
-                            </td>
-                            <td><strong>${hub.name}</strong></td>
-                            <td style="color: #6b7280;">${hub.location}</td>
-                            <td style="text-align: center;"><strong style="color: #3b82f6;">${hub.last30DayAvg}</strong></td>
-                            <td style="text-align: center;">${hub.currentUsage}</td>
-                            <td style="text-align: center;">${hub.capacity}</td>
-                            <td style="text-align: center;">
-                                <span style="font-weight: bold; color: ${hub.utilizationRate >= 80 ? '#dc2626' : hub.utilizationRate >= 60 ? '#f59e0b' : '#10b981'}">
-                                    ${hub.utilizationRate}%
-                                </span>
-                            </td>
-                            <td style="text-align: center;">
-                                <strong style="color: #059669; font-size: 16px;">+${hub.bikesNeeded}</strong>
-                            </td>
-                            <td style="text-align: center;">
-                                <span style="color: ${hub.urgency === 'CRITICAL' ? '#dc2626' : hub.urgency === 'HIGH' ? '#f59e0b' : '#6b7280'}; font-weight: 600;">
-                                    ${hub.urgency}
-                                </span>
-                            </td>
-                        </tr>
+                // Create table for this route
+                const table = document.createElement('table');
+                const thead = document.createElement('thead');
+                thead.innerHTML = `
+                    <tr>
+                        <th>Hub</th>
+                        <th>Location</th>
+                        <th>Capacity</th>
+                        <th>Current Usage (${shift === 'morning' ? 'Day' : 'Evening'})</th>
+                        <th>Utilization</th>
+                        <th>Bikes Needed</th>
+                        <th>Revenue Rank</th>
+                        <th>Priority</th>
+                    </tr>
+                `;
+                table.appendChild(thead);
+
+                const tbody = document.createElement('tbody');
+                route.forEach(hub => {
+                    let revenueClass = 'revenue-low';
+                    if (hub.revenueCategory === 'VIP') revenueClass = 'revenue-vip';
+                    else if (hub.revenueCategory === 'HIGH') revenueClass = 'revenue-high';
+                    else if (hub.revenueCategory === 'MEDIUM') revenueClass = 'revenue-medium';
+
+                    const priorityText = hub.urgency === 'CRITICAL' ? `<span class="trend-down">Critical ⬇️</span>` : 
+                                          hub.urgency === 'HIGH' ? `<span class="trend-up">High 🔺</span>` : 'Normal';
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${hub.name}</td>
+                        <td>${hub.location}</td>
+                        <td>${hub.capacity}</td>
+                        <td>${hub.currentUsage}</td>
+                        <td>${hub.utilizationRate}%</td>
+                        <td>${hub.bikesNeeded}</td>
+                        <td><span class="revenue-badge ${revenueClass.toLowerCase()}">${hub.revenueCategory}</span></td>
+                        <td>${priorityText}</td>
                     `;
+                    tbody.appendChild(row);
                 });
+                table.appendChild(tbody);
 
-                routeHTML += `
-                        </tbody>
-                        <tfoot>
-                            <tr style="background: #f9fafb; font-weight: bold;">
-                                <td colspan="8" style="text-align: right; padding: 15px;">Route Total:</td>
-                                <td style="text-align: center; color: #059669; font-size: 18px;">+${totalBikes} bikes</td>
-                                <td style="text-align: center; color: #6b7280;">${vanLoads} load${vanLoads > 1 ? 's' : ''}</td>
-                            </tr>
-                        </tfoot>
-                    </table>`;
-                routesContainer.innerHTML += routeHTML;
+                routesContainer.appendChild(table);
             });
         }
 
         function downloadCSV() {
             const shift = document.getElementById('shiftSelect').value;
             const strategy = document.getElementById('strategySelect').value;
-            const shiftName = shift === 'morning' ? 'Morning' : 'Evening';
-            const today = new Date().toLocaleDateString();
 
+            // Gather route data as shown
             let hubsToShow = hubsData.map(hub => {
                 const currentUsage = shift === 'morning' ? hub.dayAvg : hub.eveningAvg;
                 const utilizationRate = Math.round((currentUsage / hub.capacity) * 100);
                 const bikesNeeded = Math.max(0, hub.capacity - currentUsage);
                 const revenueCategory = getRevenueCategory(hub.revenueRank);
-                
                 let priorityScore = 0;
                 if (strategy === 'revenue') {
                     priorityScore = hub.last30DayAvg * 100 + utilizationRate;
@@ -437,11 +404,9 @@
                 } else {
                     priorityScore = (hub.last30DayAvg * 50) + utilizationRate;
                 }
-                
                 const urgency = utilizationRate >= 90 ? 'CRITICAL' : 
                                utilizationRate >= 70 ? 'HIGH' : 
                                utilizationRate >= 50 ? 'MEDIUM' : 'LOW';
-                
                 return { 
                     ...hub, 
                     currentUsage, 
@@ -457,12 +422,6 @@
             }).filter(h => h.shouldRefill && h.bikesNeeded > 0)
               .sort((a, b) => b.priorityScore - a.priorityScore);
 
-            if (hubsToShow.length === 0) {
-                alert('No hubs need refilling with current strategy!');
-                return;
-            }
-
-            // Smart route optimization for CSV
             const optimizedRoutes = [];
             let currentRoute = [];
             let currentBikeCount = 0;
@@ -487,37 +446,39 @@
                 optimizedRoutes.push(currentRoute);
             }
 
-            let csv = `Revenue-Focused Bike Rebalancing Plan - ${shiftName} Shift - ${today}\n`;
-            csv += `Strategy: ${strategy.toUpperCase()}\n`;
-            csv += `Drivers Required: ${optimizedRoutes.length}\n`;
-            csv += `Total Hubs: ${hubsToShow.length}\n`;
-            csv += `Total Bikes: ${hubsToShow.reduce((sum, h) => sum + h.bikesNeeded, 0)}\n`;
-            csv += `Driver Capacity: 52 bikes/shift • Van Capacity: 12 bikes/load\n\n`;
+            // Build CSV string
+            let csvContent = 'Driver,Hub,Location,Capacity,Current Usage,Utilization %,Bikes Needed,Revenue Rank,Priority\n';
 
-            optimizedRoutes.forEach((route, driverIndex) => {
-                const routeBikes = route.reduce((sum, h) => sum + h.bikesNeeded, 0);
-                const vanLoads = Math.ceil(routeBikes / 12);
-                
-                csv += `\nDRIVER ${driverIndex + 1} - ${route.length} stops • ${routeBikes} bikes • ${vanLoads} van load(s)\n`;
-                csv += `Stop,Revenue Tier,Hub Name,Location,30-Day Avg,Current Usage,Capacity,Utilization %,Bikes Needed,Urgency,Revenue Rank\n`;
-                
-                route.forEach((hub, stopIndex) => {
-                    csv += `${stopIndex + 1},${hub.revenueCategory},${hub.name},${hub.location},${hub.last30DayAvg},${hub.currentUsage},${hub.capacity},${hub.utilizationRate},${hub.bikesNeeded},${hub.urgency},${hub.revenueRank}\n`;
+            optimizedRoutes.forEach((route, i) => {
+                route.forEach(hub => {
+                    let priorityText = hub.urgency === 'CRITICAL' ? 'Critical' : 
+                                      hub.urgency === 'HIGH' ? 'High' : 'Normal';
+                    csvContent += [
+                        i + 1,
+                        `"${hub.name}"`,
+                        `"${hub.location}"`,
+                        hub.capacity,
+                        hub.currentUsage,
+                        hub.utilizationRate + '%',
+                        hub.bikesNeeded,
+                        hub.revenueCategory,
+                        priorityText
+                    ].join(',') + '\n';
                 });
             });
 
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
             const url = URL.createObjectURL(blob);
             link.setAttribute('href', url);
-            link.setAttribute('download', `bike-routes-${shift}-${new Date().toISOString().split('T')[0]}.csv`);
+            link.setAttribute('download', `bike_rebalancing_routes_${shift}_${strategy}.csv`);
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
         }
 
-        // Initialize dashboard
-        updateDashboard();
+        // Initialize dashboard on page load
+        window.onload = updateDashboard;
     </script>
 </body>
 </html>
