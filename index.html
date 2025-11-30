@@ -675,46 +675,47 @@ async function processCSV(csvText) {
         }
         
         const name = location;
-            
-            // All remaining columns are daily bike counts (alternating morning/evening)
-            const dailyCounts = row.slice(5).map(val => Number(val) || 0);
-            
-            // Calculate consumption: difference between consecutive readings
-            const consumptions = [];
-            for (let i = 1; i < dailyCounts.length; i++) {
-                const decrease = dailyCounts[i - 1] - dailyCounts[i];
-                if (decrease > 0) {
-                    consumptions.push(decrease);
-                }
+        
+        // All remaining columns are daily bike counts (alternating morning/evening)
+        const dailyCounts = row.slice(5).map(val => Number(val) || 0);
+        
+        // Calculate consumption: difference between consecutive readings
+        const consumptions = [];
+        for (let i = 1; i < dailyCounts.length; i++) {
+            const decrease = dailyCounts[i - 1] - dailyCounts[i];
+            if (decrease > 0) {
+                consumptions.push(decrease);
             }
-            
-            const totalConsumed = consumptions.reduce((sum, val) => sum + val, 0);
-            const avgDailyConsumption = consumptions.length > 0 ? totalConsumed / consumptions.length : 0;
-            
-            // Recent trend: last 7 readings
-            const recentConsumptions = consumptions.slice(-7);
-            const recentTrend = recentConsumptions.length > 0 
-                ? recentConsumptions.reduce((sum, val) => sum + val, 0) / recentConsumptions.length 
-                : 0;
-            
-            // Current status (last reading)
-            const currentBikes = dailyCounts[dailyCounts.length - 1] || 0;
-            
-            return {
-                name,
-                hubId,
-                latitude,
-                longitude,
-                area,
-                dailyCounts,
-                consumptions,
-                totalConsumed,
-                avgDailyConsumption,
-                recentTrend,
-                currentBikes
-            };
-        })
-        .filter(hub => hub.totalConsumed > 0); // Only include hubs with consumption data
+        }
+        
+        const totalConsumed = consumptions.reduce((sum, val) => sum + val, 0);
+        const avgDailyConsumption = consumptions.length > 0 ? totalConsumed / consumptions.length : 0;
+        
+        // Recent trend: last 7 readings
+        const recentConsumptions = consumptions.slice(-7);
+        const recentTrend = recentConsumptions.length > 0 
+            ? recentConsumptions.reduce((sum, val) => sum + val, 0) / recentConsumptions.length 
+            : 0;
+        
+        // Current status (last reading)
+        const currentBikes = dailyCounts[dailyCounts.length - 1] || 0;
+        
+        processedHubs.push({
+            name,
+            hubId,
+            latitude,
+            longitude,
+            area,
+            dailyCounts,
+            consumptions,
+            totalConsumed,
+            avgDailyConsumption,
+            recentTrend,
+            currentBikes
+        });
+    }
+    
+    hubsData = processedHubs.filter(hub => hub.totalConsumed > 0);
 
     if (hubsData.length === 0) {
         alert("No valid consumption data found. Make sure the CSV has daily bike counts.");
