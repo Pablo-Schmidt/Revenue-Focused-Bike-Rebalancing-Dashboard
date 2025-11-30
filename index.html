@@ -590,9 +590,44 @@ function loadCSVFile(file) {
 }
 
 /* =====================================
+   REVERSE GEOCODING - Get neighborhood from coordinates
+   ===================================== */
+async function getNeighborhood(lat, lng) {
+    try {
+        // Using Nominatim (OpenStreetMap) - free, no API key needed
+        const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=16&addressdetails=1`,
+            {
+                headers: {
+                    'User-Agent': 'BikeRebalancingDashboard/1.0'
+                }
+            }
+        );
+        
+        if (!response.ok) return null;
+        
+        const data = await response.json();
+        const addr = data.address || {};
+        
+        // Build area string: "Copenhagen, Neighborhood"
+        const city = addr.city || addr.town || addr.municipality || "Copenhagen";
+        const neighborhood = addr.suburb || addr.neighbourhood || addr.quarter || addr.district || "";
+        
+        if (neighborhood) {
+            return `${city}, ${neighborhood}`;
+        }
+        return city;
+        
+    } catch (error) {
+        console.error("Geocoding error:", error);
+        return null;
+    }
+}
+
+/* =====================================
    PROCESS CSV
    ===================================== */
-function processCSV(csvText) {
+async function processCSV(csvText) {
     const rows = parseCSV(csvText);
     
     if (rows.length < 2) {
@@ -603,20 +638,43 @@ function processCSV(csvText) {
     const headers = rows[0];
     const dataRows = rows.slice(1);
 
+    // Show loading message
+    document.getElementById("routesContainer").innerHTML = `
+        <div class="empty-state">
+            <h3>🔄 Loading hub data...</h3>
+            <p>Fetching neighborhood information for ${dataRows.length} hubs...</p>
+        </div>
+    `;
+
     // Detect format: columns after Area should be daily readings
     // Expected: Hub ID (ignore), Location (use as name), Lat, Lng, Area, Day1_Morning, Day1_Evening...
     
-    hubsData = dataRows
-        .filter(row => row.length >= 7 && row[1].trim().length > 0)
-        .map(row => {
-            const hubId = row[0] || ""; // Ignore this - it's just a database ID
-            const location = row[1] || "Unknown Location"; // This is the actual address
-            const latitude = row[2] || "";
-            const longitude = row[3] || "";
-            const area = row[4] || "Unknown Area";
-            
-            // Use location as the display name (it's the actual address)
-            const name = location;
+    const processedHubs = [];
+    
+    for (let i = 0; i < dataRows.length; i++) {
+        const row = dataRows[i];
+        
+        if (row.length < 7 || !row[1].trim()) continue;
+        
+        const hubId = row[0] || "";
+        const location = row[1] || "Unknown Location";
+        const latitude = row[2] || "";
+        const longitude = row[3] || "";
+        let area = row[4] || "";
+        
+        // If area is empty or looks like "Unknown Area", try reverse geocoding
+        if (!area || area === "Unknown Area" || area.trim() === "") {
+            if (latitude && longitude) {
+                const geocodedArea = await getNeighborhood(latitude, longitude);
+                if (geocodedArea) {
+                    area = geocodedArea;
+                }
+                // Rate limiting: wait 1 second between requests to respect Nominatim usage policy
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+        }
+        
+        const name = location;
             
             // All remaining columns are daily bike counts (alternating morning/evening)
             const dailyCounts = row.slice(5).map(val => Number(val) || 0);
