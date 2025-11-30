@@ -368,7 +368,8 @@ tr:last-child td {
     <ul>
         <li><strong>Columns:</strong> Hub_ID (ignored), Address, Latitude, Longitude, Area, Day1_Morning, Day1_Evening, Day2_Morning, Day2_Evening, ...</li>
         <li><strong>Hub Name:</strong> Will use the Address column (e.g., "63 Letbane Stations")</li>
-        <li><strong>Area:</strong> Should be like "Copenhagen Indre By", "Copenhagen Nørrebro", "Copenhagen Østerbro"</li>
+        <li><strong>Area:</strong> Can be empty - system will auto-detect neighborhood from coordinates (e.g., "Copenhagen, Nørrebro")</li>
+        <li><strong>Auto-geocoding:</strong> If Area column is empty, the system will automatically look up the neighborhood using coordinates</li>
         <li><strong>How it works:</strong> System calculates bike decreases between readings (e.g., Day1: 10 bikes → Day2: 5 bikes = 5 bikes consumed)</li>
     </ul>
 </div>
