@@ -364,10 +364,11 @@ tr:last-child td {
 
 <!-- FORMAT INSTRUCTIONS -->
 <div class="alert-box">
-    <h3>📋 Expected CSV Format (2 options):</h3>
+    <h3>📋 Expected CSV Format:</h3>
     <ul>
-        <li><strong>Option 1 (Simple):</strong> Hub Name, Location, Lat, Lng, Area, Day1_Morning, Day1_Evening, Day2_Morning, Day2_Evening, ... (up to 30 days)</li>
-        <li><strong>Option 2 (Daily Snapshots):</strong> Each row = Hub, Date, Morning_Count, Evening_Count</li>
+        <li><strong>Columns:</strong> Hub_ID (ignored), Address, Latitude, Longitude, Area, Day1_Morning, Day1_Evening, Day2_Morning, Day2_Evening, ...</li>
+        <li><strong>Hub Name:</strong> Will use the Address column (e.g., "63 Letbane Stations")</li>
+        <li><strong>Area:</strong> Should be like "Copenhagen Indre By", "Copenhagen Nørrebro", "Copenhagen Østerbro"</li>
         <li><strong>How it works:</strong> System calculates bike decreases between readings (e.g., Day1: 10 bikes → Day2: 5 bikes = 5 bikes consumed)</li>
     </ul>
 </div>
@@ -603,16 +604,19 @@ function processCSV(csvText) {
     const dataRows = rows.slice(1);
 
     // Detect format: columns after Area should be daily readings
-    // Expected: Hub Name, Location, Lat, Lng, Area, Day1_Morning, Day1_Evening, Day2_Morning...
+    // Expected: Hub ID (ignore), Location (use as name), Lat, Lng, Area, Day1_Morning, Day1_Evening...
     
     hubsData = dataRows
-        .filter(row => row.length >= 7 && row[0].trim().length > 0)
+        .filter(row => row.length >= 7 && row[1].trim().length > 0)
         .map(row => {
-            const name = row[0] || "Unknown";
-            const location = row[1] || "Unknown";
+            const hubId = row[0] || ""; // Ignore this - it's just a database ID
+            const location = row[1] || "Unknown Location"; // This is the actual address
             const latitude = row[2] || "";
             const longitude = row[3] || "";
             const area = row[4] || "Unknown Area";
+            
+            // Use location as the display name (it's the actual address)
+            const name = location;
             
             // All remaining columns are daily bike counts (alternating morning/evening)
             const dailyCounts = row.slice(5).map(val => Number(val) || 0);
@@ -640,7 +644,7 @@ function processCSV(csvText) {
             
             return {
                 name,
-                location,
+                hubId,
                 latitude,
                 longitude,
                 area,
@@ -845,9 +849,8 @@ function renderRoutes(routes) {
                     <tr>
                         <th>Rank</th>
                         <th>Demand</th>
-                        <th>Hub Name</th>
-                        <th>Area</th>
-                        <th>Location</th>
+                        <th>Address</th>
+                        <th>Area (District)</th>
                         <th>Coordinates</th>
                         <th>Total Consumed (30d)</th>
                         <th>Avg Daily</th>
@@ -872,7 +875,6 @@ function renderRoutes(routes) {
                     </td>
                     <td><strong>${hub.name}</strong></td>
                     <td>${hub.area}</td>
-                    <td>${hub.location}</td>
                     <td class="coordinates">${hub.latitude}, ${hub.longitude}</td>
                     <td><strong>${hub.totalConsumed.toFixed(0)}</strong> bikes</td>
                     <td><strong>${hub.avgDailyConsumption.toFixed(1)}</strong></td>
