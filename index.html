@@ -1,525 +1,342 @@
-\\ PRETTY BUT INCOMPLETE CODE
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Revenue-Focused Bike Rebalancing Dashboard</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-            background: #f3f4f6;
-            padding: 20px;
-        }
-        .container { max-width: 1400px; margin: 0 auto; }
-        .header {
-            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
-            margin-bottom: 20px;
-            color: white;
-        }
-        h1 { margin-bottom: 10px; }
-        .controls {
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-        .control-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-        }
-        .control-item label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: #374151;
-        }
-        select { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; }
-        .download-banner {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 20px;
-        }
-        .download-banner h2 { color: white; font-size: 24px; margin-bottom: 5px; }
-        .download-banner p { color: #d1fae5; font-size: 14px; }
-        .download-btn {
-            background: white;
-            color: #059669;
-            border: none;
-            padding: 20px 40px;
-            border-radius: 10px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            transition: all 0.3s;
-        }
-        .download-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(0,0,0,0.3);
-            background: #f0fdf4;
-        }
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-        .stat-card {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-        }
-        .stat-label { color: #6b7280; font-size: 14px; margin-bottom: 5px; }
-        .stat-value { font-size: 32px; font-weight: bold; color: #1f2937; }
-        .stat-subtext { font-size: 12px; color: #9ca3af; margin-top: 5px; }
-        table {
-            width: 100%;
-            background: white;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-        th {
-            background: #f9fafb;
-            padding: 15px 10px;
-            text-align: left;
-            font-weight: 600;
-            color: #374151;
-            border-bottom: 2px solid #e5e7eb;
-            font-size: 13px;
-        }
-        td {
-            padding: 15px 10px;
-            border-bottom: 1px solid #f3f4f6;
-            font-size: 14px;
-        }
-        tr:hover { background: #f9fafb; }
-        .revenue-badge {
-            display: inline-block;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-        }
-        .revenue-vip { background: #fef3c7; color: #92400e; }
-        .revenue-high { background: #dbeafe; color: #1e40af; }
-        .revenue-medium { background: #e0e7ff; color: #4338ca; }
-        .revenue-low { background: #f3f4f6; color: #6b7280; }
-        .route-header {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .route-header h3 { color: #1f2937; font-size: 20px; }
-        .priority-star { color: #f59e0b; font-size: 20px; }
-        .trend-up { color: #10b981; font-weight: bold; }
-        .trend-down { color: #ef4444; font-weight: bold; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bike Consumption Dashboard</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: Arial, sans-serif; background: #f3f4f6; padding: 20px; }
+.container { max-width: 1600px; margin: 0 auto; }
+
+.header {
+    background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);
+    padding: 30px; border-radius: 12px; color: white; margin-bottom: 20px;
+}
+.header h1 { font-size: 28px; margin-bottom: 8px; }
+
+.alert-box {
+    background: #fef3c7; border-left: 4px solid #f59e0b;
+    padding: 15px 20px; border-radius: 8px; margin-bottom: 20px;
+}
+.alert-box h3 { color: #92400e; font-size: 16px; margin-bottom: 8px; }
+.alert-box ul { margin-left: 20px; color: #78350f; font-size: 14px; }
+
+.controls { background: white; padding: 25px; border-radius: 12px; margin-bottom: 20px; }
+.control-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+label { font-weight: 600; margin-bottom: 8px; color: #374151; display: block; font-size: 14px; }
+select, input { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; }
+button { padding: 10px 20px; background: #7c3aed; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
+button:hover { background: #6d28d9; }
+
+#dropzone {
+    border: 2px dashed #7c3aed; padding: 30px; text-align: center;
+    border-radius: 10px; background: #faf5ff; cursor: pointer;
+    color: #6d28d9; font-weight: bold; margin-bottom: 20px;
+}
+#dropzone:hover { background: #f3e8ff; }
+
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px; }
+.stat-card { background: white; padding: 20px; border-radius: 10px; }
+.stat-label { color: #6b7280; font-size: 13px; margin-bottom: 8px; }
+.stat-value { font-size: 28px; font-weight: bold; color: #1f2937; }
+
+.route-header { background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); padding: 20px; border-radius: 10px; margin-bottom: 10px; color: white; }
+
+table { width: 100%; background: white; border-radius: 10px; overflow: hidden; margin-bottom: 25px; }
+th { background: #f9fafb; padding: 12px 10px; text-align: left; border-bottom: 2px solid #e5e7eb; font-weight: 600; font-size: 12px; }
+td { padding: 12px 10px; border-bottom: 1px solid #f3f4f6; font-size: 13px; }
+tr:hover { background: #fef3c7; }
+
+.consumption-badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; display: inline-block; }
+.consumption-extreme { background: #fee2e2; color: #991b1b; }
+.consumption-high { background: #fed7aa; color: #9a3412; }
+.consumption-medium { background: #fef3c7; color: #92400e; }
+.consumption-low { background: #e5e7eb; color: #6b7280; }
+
+.empty-state { text-align: center; padding: 60px 20px; background: white; border-radius: 12px; }
+</style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>💰 Revenue-Focused Bike Rebalancing Dashboard</h1>
-            <p>Prioritize high-traffic hubs to maximize trips and profits</p>
-        </div>
+<div class="container">
 
-        <div class="controls">
-            <div class="control-grid">
-                <div class="control-item">
-                    <label>🕐 Shift Time</label>
-                    <select id="shiftSelect" onchange="updateDashboard()">
-                        <option value="morning">Morning Shift (Day Usage)</option>
-                        <option value="evening">Evening Shift (Night Usage)</option>
-                    </select>
-                </div>
-                <div class="control-item">
-                    <label>📊 Priority Strategy</label>
-                    <select id="strategySelect" onchange="updateDashboard()">
-                        <option value="revenue">Revenue Focus - High Traffic First</option>
-                        <option value="critical">Critical Only - Prevent Empty Hubs</option>
-                        <option value="balanced">Balanced - Traffic + Capacity</option>
-                    </select>
-                </div>
-                <div class="control-item">
-                    <div class="stat-card" style="margin: 0;">
-                        <div class="stat-label">Drivers Needed</div>
-                        <div class="stat-value" id="driversNeeded">0</div>
-                    </div>
-                </div>
-            </div>
-        </div>
+<div class="header">
+    <h1>📉 Bike Consumption Dashboard</h1>
+    <p>Track daily bike usage and identify high-demand hotspots</p>
+</div>
 
-        <div class="download-banner">
-            <div>
-                <h2>📥 Export Driver Routes</h2>
-                <p id="downloadMessage">Click to download optimized route plan</p>
-            </div>
-            <button class="download-btn" onclick="downloadCSV()">
-                ⬇️ DOWNLOAD CSV FILE
-            </button>
-        </div>
+<div class="alert-box">
+    <h3>📋 CSV Format:</h3>
+    <ul>
+        <li><strong>Columns:</strong> Hub_ID, Address, Latitude, Longitude, Area, Day1_Morning, Day1_Evening, Day2_Morning...</li>
+        <li><strong>Auto-geocoding:</strong> Empty Area fields will be auto-detected from coordinates</li>
+        <li><strong>Consumption:</strong> Calculated from bike decreases between readings</li>
+    </ul>
+</div>
 
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-label">⭐ VIP Hubs (High Traffic)</div>
-                <div class="stat-value" style="color: #f59e0b;" id="vipHubs">0</div>
-                <div class="stat-subtext">Top revenue generators</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">🚴 Total Hubs to Refill</div>
-                <div class="stat-value" style="color: #3b82f6;" id="needRefill">0</div>
-                <div class="stat-subtext">Based on strategy</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">🔥 Critical Hubs</div>
-                <div class="stat-value" style="color: #dc2626;" id="criticalCount">0</div>
-                <div class="stat-subtext">Risk of running empty</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">📦 Total Bikes Needed</div>
-                <div class="stat-value" style="color: #059669;" id="bikesNeeded">0</div>
-                <div class="stat-subtext">To fully stock hubs</div>
-            </div>
-        </div>
+<div id="dropzone">📥 Drop CSV here or click to upload</div>
 
-        <div id="routesContainer"></div>
+<div class="controls">
+    <label>📄 Google Sheet (public link)</label>
+    <input type="text" id="sheetURL" placeholder="Paste Google Sheet link...">
+    <button onclick="loadSheet()">Load Sheet</button>
+</div>
+
+<div class="controls">
+    <div class="control-grid">
+        <div>
+            <label>🕐 Shift Time</label>
+            <select id="shiftSelect" onchange="update()">
+                <option value="morning">Morning Shift</option>
+                <option value="evening">Evening Shift</option>
+            </select>
+        </div>
+        <div>
+            <label>🚗 Drivers</label>
+            <select id="driversCount" onchange="update()">
+                <option value="1">1 Driver</option>
+                <option value="2">2 Drivers</option>
+                <option value="3">3 Drivers</option>
+            </select>
+        </div>
+        <div>
+            <label>📍 Hubs per Driver</label>
+            <input type="number" id="hubsPerDriver" value="5" min="5" max="7" onchange="update()">
+        </div>
+        <div>
+            <label>📊 Ranking</label>
+            <select id="rankingMethod" onchange="update()">
+                <option value="total">Total Consumed (30d)</option>
+                <option value="average">Avg Daily</option>
+                <option value="trend">Recent Trend (7d)</option>
+            </select>
+        </div>
     </div>
+</div>
 
-    <script>
-        // Real data from your CSV - analyzed for 30-day averages
-        const hubsData = [
-            { name: 'REFFEN 0', location: 'Central Copenhagen', dayAvg: 30, eveningAvg: 6, capacity: 20, last30DayAvg: 18, revenueRank: 1 },
-            { name: 'Langelinie (Little Mermaid)', location: 'Central Copenhagen', dayAvg: 12, eveningAvg: 10, capacity: 15, last30DayAvg: 11, revenueRank: 2 },
-            { name: 'Frederiksgade', location: 'Central Copenhagen', dayAvg: 11, eveningAvg: 9, capacity: 15, last30DayAvg: 10, revenueRank: 3 },
-            { name: 'Nørreport Train Station', location: 'Central Copenhagen', dayAvg: 11, eveningAvg: 10, capacity: 15, last30DayAvg: 10, revenueRank: 4 },
-            { name: 'Højbro Plads', location: 'Central Copenhagen', dayAvg: 8, eveningAvg: 5, capacity: 12, last30DayAvg: 7, revenueRank: 5 },
-            { name: 'Rådhuspladsen 2', location: 'Central Copenhagen', dayAvg: 13, eveningAvg: 11, capacity: 15, last30DayAvg: 12, revenueRank: 6 },
-            { name: 'Strandgade', location: 'Central Copenhagen', dayAvg: 11, eveningAvg: 14, capacity: 15, last30DayAvg: 12, revenueRank: 7 },
-            { name: '1395 Vindmollevej', location: 'Central Copenhagen', dayAvg: 8, eveningAvg: 5, capacity: 12, last30DayAvg: 7, revenueRank: 8 },
-            { name: 'DAC CAFE', location: 'Central Copenhagen', dayAvg: 10, eveningAvg: 8, capacity: 12, last30DayAvg: 9, revenueRank: 9 },
-            { name: 'Tivoli 2', location: 'Central Copenhagen', dayAvg: 9, eveningAvg: 8, capacity: 12, last30DayAvg: 9, revenueRank: 10 },
-            { name: '901 Christiania', location: 'Central Copenhagen', dayAvg: 8, eveningAvg: 7, capacity: 10, last30DayAvg: 7, revenueRank: 11 },
-            { name: 'Østerport St. 1', location: 'Central Copenhagen', dayAvg: 8, eveningAvg: 4, capacity: 10, last30DayAvg: 6, revenueRank: 12 },
-            { name: 'Central Train Station 2', location: 'Central Copenhagen', dayAvg: 8, eveningAvg: 3, capacity: 10, last30DayAvg: 6, revenueRank: 13 },
-            { name: 'Dybbølsbro fjernbussterminal', location: 'Vesterbro', dayAvg: 9, eveningAvg: 8, capacity: 12, last30DayAvg: 8, revenueRank: 14 },
-            { name: 'Kalvebod Bølge', location: 'Vesterbro', dayAvg: 9, eveningAvg: 12, capacity: 15, last30DayAvg: 10, revenueRank: 15 },
-            { name: 'amaliehaven', location: 'Central Copenhagen', dayAvg: 8, eveningAvg: 9, capacity: 12, last30DayAvg: 9, revenueRank: 16 },
-            { name: 'Gefion Fountain', location: 'Central Copenhagen', dayAvg: 6, eveningAvg: 5, capacity: 10, last30DayAvg: 5, revenueRank: 17 },
-            { name: 'Rådhuspladsen', location: 'Central Copenhagen', dayAvg: 8, eveningAvg: 5, capacity: 10, last30DayAvg: 7, revenueRank: 18 },
-            { name: '8983 Konges Nytorv 1', location: 'Central Copenhagen', dayAvg: 7, eveningAvg: 6, capacity: 10, last30DayAvg: 6, revenueRank: 19 },
-            { name: 'Distortion 5', location: 'Central Copenhagen', dayAvg: 7, eveningAvg: 7, capacity: 10, last30DayAvg: 7, revenueRank: 20 },
-            { name: 'Basecamp 516', location: 'Lyngby', dayAvg: 9, eveningAvg: 7, capacity: 12, last30DayAvg: 8, revenueRank: 21 },
-            { name: '78 Klampenborgvej', location: 'Lyngby', dayAvg: 7, eveningAvg: 11, capacity: 12, last30DayAvg: 9, revenueRank: 22 },
-            { name: 'Birkerød stationsforplads', location: 'Rudersdal', dayAvg: 9, eveningAvg: 4, capacity: 12, last30DayAvg: 6, revenueRank: 23 },
-            { name: 'Glostrup St', location: 'Glostrup', dayAvg: 9, eveningAvg: 7, capacity: 12, last30DayAvg: 8, revenueRank: 24 },
-            { name: 'Brøndbyhallen', location: 'Brøndby', dayAvg: 10, eveningAvg: 5, capacity: 12, last30DayAvg: 8, revenueRank: 25 }
-        ];
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-label">🚗 Active Drivers</div>
+        <div class="stat-value" id="activeDrivers">0</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">📍 Priority Hubs</div>
+        <div class="stat-value" id="totalHubs">0</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">🔥 Hottest Hub</div>
+        <div class="stat-value" id="hottestHub">-</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">📉 Total Consumed</div>
+        <div class="stat-value" id="totalConsumed">0</div>
+    </div>
+</div>
 
-        function getRevenueCategory(rank) {
-            if (rank <= 5) return 'VIP';
-            if (rank <= 12) return 'HIGH';
-            if (rank <= 20) return 'MEDIUM';
-            return 'LOW';
+<div id="routesContainer"></div>
+
+</div>
+
+<script>
+let hubsData = [];
+
+// CSV Parser
+function parseCSV(csv) {
+    const rows = [];
+    let field = "", row = [], inQuotes = false;
+    for (let i = 0; i < csv.length; i++) {
+        const c = csv[i], next = csv[i + 1];
+        if (c === '"') {
+            if (inQuotes && next === '"') { field += '"'; i++; }
+            else { inQuotes = !inQuotes; }
+        } else if (c === "," && !inQuotes) {
+            row.push(field.trim()); field = "";
+        } else if ((c === "\n" || c === "\r") && !inQuotes) {
+            if (c === "\r" && next === "\n") i++;
+            if (field || row.length) {
+                row.push(field.trim());
+                if (row.some(f => f)) rows.push(row);
+                row = []; field = "";
+            }
+        } else { field += c; }
+    }
+    if (field || row.length) {
+        row.push(field.trim());
+        if (row.some(f => f)) rows.push(row);
+    }
+    return rows;
+}
+
+// Geocoding
+async function getArea(lat, lng) {
+    try {
+        const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=16`,
+            { headers: { 'User-Agent': 'BikeDashboard/1.0' } }
+        );
+        if (!res.ok) return null;
+        const data = await res.json();
+        const a = data.address || {};
+        const city = a.city || a.town || a.municipality || "Copenhagen";
+        const nb = a.suburb || a.neighbourhood || a.quarter || "";
+        return nb ? `${city}, ${nb}` : city;
+    } catch (e) { return null; }
+}
+
+// Process CSV
+async function processCSV(text) {
+    const rows = parseCSV(text);
+    if (rows.length < 2) { alert("Empty CSV"); return; }
+    
+    document.getElementById("routesContainer").innerHTML = `
+        <div class="empty-state"><h3>🔄 Loading ${rows.length - 1} hubs...</h3></div>
+    `;
+
+    const hubs = [];
+    for (let i = 1; i < rows.length; i++) {
+        const r = rows[i];
+        if (r.length < 7 || !r[1].trim()) continue;
+        
+        const name = r[1];
+        const lat = (r[2] || "").trim().replace(/,+$/, "");
+        const lng = (r[3] || "").trim().replace(/,+$/, "");
+        let area = r[4] || "";
+        
+        if (!area || area === "Unknown Area") {
+            if (lat && lng) {
+                area = await getArea(lat, lng) || area;
+                await new Promise(res => setTimeout(res, 1000));
+            }
         }
-
-        function updateDashboard() {
-            const shift = document.getElementById('shiftSelect').value;
-            const strategy = document.getElementById('strategySelect').value;
-
-            let hubsToShow = hubsData.map(hub => {
-                const currentUsage = shift === 'morning' ? hub.dayAvg : hub.eveningAvg;
-                const utilizationRate = Math.round((currentUsage / hub.capacity) * 100);
-                const bikesNeeded = Math.max(0, hub.capacity - currentUsage);
-                const revenueCategory = getRevenueCategory(hub.revenueRank);
-                
-                // Calculate priority score based on strategy
-                let priorityScore = 0;
-                if (strategy === 'revenue') {
-                    // Prioritize high-traffic hubs regardless of current utilization
-                    priorityScore = hub.last30DayAvg * 100 + utilizationRate;
-                } else if (strategy === 'critical') {
-                    // Only show hubs over 80% capacity
-                    priorityScore = utilizationRate >= 80 ? utilizationRate : 0;
-                } else { // balanced
-                    // Mix of traffic and utilization
-                    priorityScore = (hub.last30DayAvg * 50) + utilizationRate;
-                }
-                
-                const urgency = utilizationRate >= 90 ? 'CRITICAL' : 
-                               utilizationRate >= 70 ? 'HIGH' : 
-                               utilizationRate >= 50 ? 'MEDIUM' : 'LOW';
-                
-                return { 
-                    ...hub, 
-                    currentUsage, 
-                    utilizationRate, 
-                    bikesNeeded, 
-                    priorityScore,
-                    urgency,
-                    revenueCategory,
-                    shouldRefill: strategy === 'critical' ? utilizationRate >= 80 : 
-                                 strategy === 'revenue' ? hub.revenueRank <= 15 :
-                                 utilizationRate >= 60 || hub.revenueRank <= 10
-                };
-            }).filter(h => h.shouldRefill && h.bikesNeeded > 0)
-              .sort((a, b) => b.priorityScore - a.priorityScore);
-
-            // Smart route optimization: max 52 bikes and 5 hubs per driver
-            const optimizedRoutes = [];
-            let currentRoute = [];
-            let currentBikeCount = 0;
-            
-            for (const hub of hubsToShow) {
-                const wouldExceedBikes = currentBikeCount + hub.bikesNeeded > 52;
-                const wouldExceedHubs = currentRoute.length >= 5;
-                
-                if (wouldExceedBikes || wouldExceedHubs) {
-                    if (currentRoute.length > 0) {
-                        optimizedRoutes.push([...currentRoute]);
-                    }
-                    currentRoute = [hub];
-                    currentBikeCount = hub.bikesNeeded;
-                } else {
-                    currentRoute.push(hub);
-                    currentBikeCount += hub.bikesNeeded;
-                }
-            }
-            
-            if (currentRoute.length > 0) {
-                optimizedRoutes.push(currentRoute);
-            }
-
-            // Calculate stats
-            const vipCount = hubsToShow.filter(h => h.revenueCategory === 'VIP').length;
-            const criticalCount = hubsToShow.filter(h => h.urgency === 'CRITICAL').length;
-            const totalBikes = hubsToShow.reduce((sum, h) => sum + h.bikesNeeded, 0);
-            const driversNeeded = optimizedRoutes.length;
-
-            document.getElementById('vipHubs').textContent = vipCount;
-            document.getElementById('needRefill').textContent = hubsToShow.length;
-            document.getElementById('criticalCount').textContent = criticalCount;
-            document.getElementById('bikesNeeded').textContent = totalBikes;
-            document.getElementById('driversNeeded').textContent = driversNeeded;
-            document.getElementById('downloadMessage').textContent = 
-                hubsToShow.length > 0 
-                    ? `${driversNeeded} driver(s) • ${hubsToShow.length} hubs • ${totalBikes} bikes`
-                    : 'No hubs need refilling with current strategy';
-
-            // Display routes
-            const routesContainer = document.getElementById('routesContainer');
-            routesContainer.innerHTML = '';
-
-            if (optimizedRoutes.length === 0) {
-                routesContainer.innerHTML = '<div class="route-header"><h3>✅ All hubs are optimized for current strategy!</h3></div>';
-                return;
-            }
-
-            optimizedRoutes.forEach((route, driverIndex) => {
-                const totalBikes = route.reduce((sum, h) => sum + h.bikesNeeded, 0);
-                const vipInRoute = route.filter(h => h.revenueCategory === 'VIP').length;
-                const vanLoads = Math.ceil(totalBikes / 12);
-                const bikeUtilization = Math.round((totalBikes / 52) * 100);
-
-                let routeHTML = `
-                    <div class="route-header">
-                        <div>
-                            <h3>🚗 Driver ${driverIndex + 1} Route - ${route.length} Hubs • ${totalBikes}/52 Bikes (${bikeUtilization}%)${vipInRoute > 0 ? ` • ${vipInRoute} ⭐ VIP` : ''}</h3>
-                            <div style="color: #6b7280; font-size: 14px; margin-top: 5px;">
-                                🚐 Van Loads: ${vanLoads} trip${vanLoads > 1 ? 's' : ''} needed (12 bikes/load)
-                                ${totalBikes > 52 ? ' • ⚠️ OVER CAPACITY' : totalBikes < 40 ? ' • ✓ Light Load' : ' • ✓ Optimal Load'}
-                            </div>
-                        </div>
-                    </div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th style="width: 40px;">Stop</th>
-                                <th>Revenue Tier</th>
-                                <th>Hub Name</th>
-                                <th>Location</th>
-                                <th>30-Day Avg</th>
-                                <th>Current</th>
-                                <th>Capacity</th>
-                                <th>Usage %</th>
-                                <th>Bikes Needed</th>
-                                <th>Urgency</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                `;
-
-                route.forEach((hub, stopIndex) => {
-                    const categoryClass = hub.revenueCategory === 'VIP' ? 'revenue-vip' :
-                                        hub.revenueCategory === 'HIGH' ? 'revenue-high' :
-                                        hub.revenueCategory === 'MEDIUM' ? 'revenue-medium' : 'revenue-low';
-                    
-                    routeHTML += `
-                        <tr>
-                            <td style="text-align: center; font-weight: bold; color: #3b82f6;">${stopIndex + 1}</td>
-                            <td>
-                                <span class="revenue-badge ${categoryClass}">
-                                    ${hub.revenueCategory === 'VIP' ? '⭐ ' : ''}${hub.revenueCategory}
-                                </span>
-                            </td>
-                            <td><strong>${hub.name}</strong></td>
-                            <td style="color: #6b7280;">${hub.location}</td>
-                            <td style="text-align: center;"><strong style="color: #3b82f6;">${hub.last30DayAvg}</strong></td>
-                            <td style="text-align: center;">${hub.currentUsage}</td>
-                            <td style="text-align: center;">${hub.capacity}</td>
-                            <td style="text-align: center;">
-                                <span style="font-weight: bold; color: ${hub.utilizationRate >= 80 ? '#dc2626' : hub.utilizationRate >= 60 ? '#f59e0b' : '#10b981'}">
-                                    ${hub.utilizationRate}%
-                                </span>
-                            </td>
-                            <td style="text-align: center;">
-                                <strong style="color: #059669; font-size: 16px;">+${hub.bikesNeeded}</strong>
-                            </td>
-                            <td style="text-align: center;">
-                                <span style="color: ${hub.urgency === 'CRITICAL' ? '#dc2626' : hub.urgency === 'HIGH' ? '#f59e0b' : '#6b7280'}; font-weight: 600;">
-                                    ${hub.urgency}
-                                </span>
-                            </td>
-                        </tr>
-                    `;
-                });
-
-                routeHTML += `
-                        </tbody>
-                        <tfoot>
-                            <tr style="background: #f9fafb; font-weight: bold;">
-                                <td colspan="8" style="text-align: right; padding: 15px;">Route Total:</td>
-                                <td style="text-align: center; color: #059669; font-size: 18px;">+${totalBikes} bikes</td>
-                                <td style="text-align: center; color: #6b7280;">${vanLoads} load${vanLoads > 1 ? 's' : ''}</td>
-                            </tr>
-                        </tfoot>
-                    </table>`;
-                routesContainer.innerHTML += routeHTML;
-            });
+        
+        const counts = r.slice(5).map(v => Number(v) || 0);
+        const cons = [];
+        for (let j = 1; j < counts.length; j++) {
+            const dec = counts[j - 1] - counts[j];
+            if (dec > 0) cons.push(dec);
         }
+        
+        const total = cons.reduce((s, v) => s + v, 0);
+        const avg = cons.length ? total / cons.length : 0;
+        const trend = cons.slice(-7).reduce((s, v) => s + v, 0) / Math.min(cons.length, 7);
+        
+        hubs.push({ name, lat, lng, area, total, avg, trend, current: counts[counts.length - 1] });
+    }
+    
+    hubsData = hubs.filter(h => h.total > 0);
+    if (!hubsData.length) { alert("No consumption data found"); return; }
+    update();
+}
 
-        function downloadCSV() {
-            const shift = document.getElementById('shiftSelect').value;
-            const strategy = document.getElementById('strategySelect').value;
-            const shiftName = shift === 'morning' ? 'Morning' : 'Evening';
-            const today = new Date().toLocaleDateString();
-
-            let hubsToShow = hubsData.map(hub => {
-                const currentUsage = shift === 'morning' ? hub.dayAvg : hub.eveningAvg;
-                const utilizationRate = Math.round((currentUsage / hub.capacity) * 100);
-                const bikesNeeded = Math.max(0, hub.capacity - currentUsage);
-                const revenueCategory = getRevenueCategory(hub.revenueRank);
-                
-                let priorityScore = 0;
-                if (strategy === 'revenue') {
-                    priorityScore = hub.last30DayAvg * 100 + utilizationRate;
-                } else if (strategy === 'critical') {
-                    priorityScore = utilizationRate >= 80 ? utilizationRate : 0;
-                } else {
-                    priorityScore = (hub.last30DayAvg * 50) + utilizationRate;
-                }
-                
-                const urgency = utilizationRate >= 90 ? 'CRITICAL' : 
-                               utilizationRate >= 70 ? 'HIGH' : 
-                               utilizationRate >= 50 ? 'MEDIUM' : 'LOW';
-                
-                return { 
-                    ...hub, 
-                    currentUsage, 
-                    utilizationRate, 
-                    bikesNeeded, 
-                    priorityScore,
-                    urgency,
-                    revenueCategory,
-                    shouldRefill: strategy === 'critical' ? utilizationRate >= 80 : 
-                                 strategy === 'revenue' ? hub.revenueRank <= 15 :
-                                 utilizationRate >= 60 || hub.revenueRank <= 10
-                };
-            }).filter(h => h.shouldRefill && h.bikesNeeded > 0)
-              .sort((a, b) => b.priorityScore - a.priorityScore);
-
-            if (hubsToShow.length === 0) {
-                alert('No hubs need refilling with current strategy!');
-                return;
-            }
-
-            // Smart route optimization for CSV
-            const optimizedRoutes = [];
-            let currentRoute = [];
-            let currentBikeCount = 0;
-            
-            for (const hub of hubsToShow) {
-                const wouldExceedBikes = currentBikeCount + hub.bikesNeeded > 52;
-                const wouldExceedHubs = currentRoute.length >= 5;
-                
-                if (wouldExceedBikes || wouldExceedHubs) {
-                    if (currentRoute.length > 0) {
-                        optimizedRoutes.push([...currentRoute]);
-                    }
-                    currentRoute = [hub];
-                    currentBikeCount = hub.bikesNeeded;
-                } else {
-                    currentRoute.push(hub);
-                    currentBikeCount += hub.bikesNeeded;
-                }
-            }
-            
-            if (currentRoute.length > 0) {
-                optimizedRoutes.push(currentRoute);
-            }
-
-            let csv = `Revenue-Focused Bike Rebalancing Plan - ${shiftName} Shift - ${today}\n`;
-            csv += `Strategy: ${strategy.toUpperCase()}\n`;
-            csv += `Drivers Required: ${optimizedRoutes.length}\n`;
-            csv += `Total Hubs: ${hubsToShow.length}\n`;
-            csv += `Total Bikes: ${hubsToShow.reduce((sum, h) => sum + h.bikesNeeded, 0)}\n`;
-            csv += `Driver Capacity: 52 bikes/shift • Van Capacity: 12 bikes/load\n\n`;
-
-            optimizedRoutes.forEach((route, driverIndex) => {
-                const routeBikes = route.reduce((sum, h) => sum + h.bikesNeeded, 0);
-                const vanLoads = Math.ceil(routeBikes / 12);
-                
-                csv += `\nDRIVER ${driverIndex + 1} - ${route.length} stops • ${routeBikes} bikes • ${vanLoads} van load(s)\n`;
-                csv += `Stop,Revenue Tier,Hub Name,Location,30-Day Avg,Current Usage,Capacity,Utilization %,Bikes Needed,Urgency,Revenue Rank\n`;
-                
-                route.forEach((hub, stopIndex) => {
-                    csv += `${stopIndex + 1},${hub.revenueCategory},${hub.name},${hub.location},${hub.last30DayAvg},${hub.currentUsage},${hub.capacity},${hub.utilizationRate},${hub.bikesNeeded},${hub.urgency},${hub.revenueRank}\n`;
-                });
-            });
-
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
-            link.setAttribute('href', url);
-            link.setAttribute('download', `bike-routes-${shift}-${new Date().toISOString().split('T')[0]}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+// File upload
+document.getElementById("dropzone").onclick = () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".csv";
+    input.onchange = e => {
+        if (e.target.files[0]) {
+            const reader = new FileReader();
+            reader.onload = ev => processCSV(ev.target.result);
+            reader.readAsText(e.target.files[0]);
         }
+    };
+    input.click();
+};
 
-        // Initialize dashboard
-        updateDashboard();
-    </script>
+// Google Sheet
+async function loadSheet() {
+    const url = document.getElementById("sheetURL").value.trim();
+    if (!url) { alert("Paste URL"); return; }
+    const m = url.match(/\/d\/([a-zA-Z0-9-_]+)/);
+    if (!m) { alert("Invalid URL"); return; }
+    try {
+        const res = await fetch(`https://docs.google.com/spreadsheets/d/${m[1]}/export?format=csv`);
+        if (!res.ok) throw new Error("Failed to load");
+        processCSV(await res.text());
+    } catch (e) { alert("Error: " + e.message); }
+}
+
+// Update dashboard
+function update() {
+    if (!hubsData.length) return;
+    
+    const method = document.getElementById("rankingMethod").value;
+    const drivers = Number(document.getElementById("driversCount").value);
+    const per = Number(document.getElementById("hubsPerDriver").value);
+    
+    let ranked = [...hubsData];
+    if (method === "total") ranked.sort((a, b) => b.total - a.total);
+    else if (method === "average") ranked.sort((a, b) => b.avg - a.avg);
+    else ranked.sort((a, b) => b.trend - a.trend);
+    
+    const selected = ranked.slice(0, drivers * per);
+    const avgCons = selected.reduce((s, h) => s + h.avg, 0) / selected.length;
+    
+    selected.forEach(h => {
+        if (h.avg >= avgCons * 2) h.cat = "EXTREME";
+        else if (h.avg >= avgCons * 1.5) h.cat = "HIGH";
+        else if (h.avg >= avgCons * 0.8) h.cat = "MEDIUM";
+        else h.cat = "LOW";
+    });
+    
+    const routes = [];
+    for (let i = 0; i < drivers; i++) {
+        const r = selected.slice(i * per, (i + 1) * per);
+        if (r.length) routes.push(r);
+    }
+    
+    document.getElementById("activeDrivers").textContent = routes.length;
+    document.getElementById("totalHubs").textContent = selected.length;
+    document.getElementById("hottestHub").textContent = selected[0]?.name || "-";
+    document.getElementById("totalConsumed").textContent = 
+        selected.reduce((s, h) => s + h.total, 0).toFixed(0);
+    
+    renderRoutes(routes);
+}
+
+function renderRoutes(routes) {
+    const container = document.getElementById("routesContainer");
+    if (!routes.length) {
+        container.innerHTML = `<div class="empty-state"><h3>📊 Upload data to begin</h3></div>`;
+        return;
+    }
+    
+    let html = "";
+    routes.forEach((route, i) => {
+        const total = route.reduce((s, h) => s + h.total, 0);
+        const avg = route.reduce((s, h) => s + h.avg, 0) / route.length;
+        
+        html += `
+            <div class="route-header">
+                <h3>🚗 Driver ${i + 1} — ${route.length} Hubs</h3>
+                <p>Total: ${total.toFixed(0)} bikes | Avg: ${avg.toFixed(1)}/day</p>
+            </div>
+            <table><thead><tr>
+                <th>Rank</th><th>Demand</th><th>Address</th><th>Area</th>
+                <th>Coordinates</th><th>Total</th><th>Avg Daily</th><th>Trend</th>
+            </tr></thead><tbody>`;
+        
+        route.forEach((h, j) => {
+            const badge = h.cat === "EXTREME" ? "consumption-extreme" :
+                         h.cat === "HIGH" ? "consumption-high" :
+                         h.cat === "MEDIUM" ? "consumption-medium" : "consumption-low";
+            html += `<tr>
+                <td><strong>#${j + 1}</strong></td>
+                <td><span class="consumption-badge ${badge}">${h.cat}</span></td>
+                <td><strong>${h.name}</strong></td>
+                <td>${h.area}</td>
+                <td>${h.lat}, ${h.lng}</td>
+                <td><strong>${h.total.toFixed(0)}</strong></td>
+                <td><strong>${h.avg.toFixed(1)}</strong></td>
+                <td><strong>${h.trend.toFixed(1)}</strong></td>
+            </tr>`;
+        });
+        
+        html += `</tbody></table>`;
+    });
+    
+    container.innerHTML = html;
+}
+</script>
 </body>
 </html>
