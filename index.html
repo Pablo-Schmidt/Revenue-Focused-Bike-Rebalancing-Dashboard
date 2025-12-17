@@ -29,34 +29,6 @@ select, input { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-ra
 button { padding: 10px 20px; background: #7c3aed; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
 button:hover { background: #6d28d9; }
 
-.region-toggle {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-}
-.region-btn {
-    flex: 1;
-    padding: 15px 20px;
-    border: 2px solid #d1d5db;
-    border-radius: 10px;
-    background: white;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 14px;
-    transition: all 0.3s;
-}
-.region-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-.region-btn.active-copenhagen { 
-    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); 
-    color: white; 
-    border-color: #f59e0b; 
-}
-.region-btn.active-region { 
-    background: linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%); 
-    color: white; 
-    border-color: #7c3aed; 
-}
-
 #dropzone {
     border: 2px dashed #7c3aed; padding: 30px; text-align: center;
     border-radius: 10px; background: #faf5ff; cursor: pointer;
@@ -97,19 +69,9 @@ tr:hover { background: #fef3c7; }
     <h3>📋 CSV Format:</h3>
     <ul>
         <li><strong>Columns:</strong> Hub_ID, Address, Latitude, Longitude, Area, Day1_Morning, Day1_Evening, Day2_Morning...</li>
-        <li><strong>Color coding:</strong> Yellow columns = Copenhagen data | Violet columns = Region Hovedstaden data</li>
         <li><strong>Auto-geocoding:</strong> Empty Area fields will be auto-detected from coordinates</li>
         <li><strong>Consumption:</strong> Calculated from bike decreases between readings</li>
     </ul>
-</div>
-
-<div class="region-toggle">
-    <button class="region-btn active-copenhagen" id="btnCopenhagen" onclick="setRegion('copenhagen')">
-        🟡 Copenhagen
-    </button>
-    <button class="region-btn" id="btnRegion" onclick="setRegion('region')">
-        🟣 Region Hovedstaden
-    </button>
 </div>
 
 <div id="dropzone">📥 Drop CSV here or click to upload</div>
@@ -177,8 +139,6 @@ tr:hover { background: #fef3c7; }
 
 <script>
 let hubsData = [];
-let currentRegion = 'copenhagen';
-let csvHeaders = [];
 
 // CSV Parser
 function parseCSV(csv) {
@@ -217,37 +177,16 @@ async function getArea(lat, lng) {
         if (!res.ok) return null;
         const data = await res.json();
         const a = data.address || {};
-        
-        // Try to get municipality/city - covers entire Capital Region
-        const municipality = a.municipality || a.city || a.town || a.village || "Capital Region";
-        const neighborhood = a.suburb || a.neighbourhood || a.quarter || a.hamlet || "";
-        
-        // Return format: "Municipality, Neighborhood" or just "Municipality"
-        return neighborhood ? `${municipality}, ${neighborhood}` : municipality;
+        const city = a.city || a.town || a.municipality || "Copenhagen";
+        const nb = a.suburb || a.neighbourhood || a.quarter || "";
+        return nb ? `${city}, ${nb}` : city;
     } catch (e) { return null; }
-}
-
-// Detect column color/region from header
-function detectColumnRegion(headerText) {
-    const lower = headerText.toLowerCase();
-    // Yellow columns are Copenhagen (containing "cph", "copenhagen", or yellow indicator)
-    // Violet columns are Region Hovedstaden (containing "region", "hovedstaden", or violet indicator)
-    if (lower.includes('cph') || lower.includes('copenhagen') || lower.includes('yellow')) {
-        return 'copenhagen';
-    }
-    if (lower.includes('region') || lower.includes('hovedstaden') || lower.includes('violet')) {
-        return 'region';
-    }
-    // Default: assume alternating or use position
-    return null;
 }
 
 // Process CSV
 async function processCSV(text) {
     const rows = parseCSV(text);
     if (rows.length < 2) { alert("Empty CSV"); return; }
-    
-    csvHeaders = rows[0];
     
     document.getElementById("routesContainer").innerHTML = `
         <div class="empty-state"><h3>🔄 Loading ${rows.length - 1} hubs...</h3></div>
@@ -270,54 +209,22 @@ async function processCSV(text) {
             }
         }
         
-        // Process data columns - separate Copenhagen vs Region data
-        const copenhagenCounts = [];
-        const regionCounts = [];
-        
-        for (let colIdx = 5; colIdx < r.length; colIdx++) {
-            const header = csvHeaders[colIdx] || "";
-            const regionType = detectColumnRegion(header);
-            const value = Number(r[colIdx]) || 0;
-            
-            if (regionType === 'copenhagen') {
-                copenhagenCounts.push(value);
-            } else if (regionType === 'region') {
-                regionCounts.push(value);
-            } else {
-                // If we can't detect, use alternating pattern: odd=copenhagen, even=region
-                if (colIdx % 2 === 1) {
-                    copenhagenCounts.push(value);
-                } else {
-                    regionCounts.push(value);
-                }
-            }
+        const counts = r.slice(5).map(v => Number(v) || 0);
+        const cons = [];
+        for (let j = 1; j < counts.length; j++) {
+            const dec = counts[j - 1] - counts[j];
+            if (dec > 0) cons.push(dec);
         }
         
-        // Calculate consumption for both regions
-        const calcStats = (counts) => {
-            const cons = [];
-            for (let j = 1; j < counts.length; j++) {
-                const dec = counts[j - 1] - counts[j];
-                if (dec > 0) cons.push(dec);
-            }
-            const total = cons.reduce((s, v) => s + v, 0);
-            const avg = cons.length ? total / cons.length : 0;
-            const trend = cons.slice(-7).reduce((s, v) => s + v, 0) / Math.min(cons.length, 7);
-            const current = counts[counts.length - 1] || 0;
-            return { total, avg, trend, current };
-        };
+        const total = cons.reduce((s, v) => s + v, 0);
+        const avg = cons.length ? total / cons.length : 0;
+        const trend = cons.slice(-7).reduce((s, v) => s + v, 0) / Math.min(cons.length, 7);
         
-        const cphStats = calcStats(copenhagenCounts);
-        const regStats = calcStats(regionCounts);
-        
-        hubs.push({ 
-            name, lat, lng, area,
-            copenhagen: cphStats,
-            region: regStats
-        });
+        hubs.push({ name, lat, lng, area, total, avg, trend, current: counts[counts.length - 1] });
     }
     
-    hubsData = hubs;
+    hubsData = hubs.filter(h => h.total > 0);
+    if (!hubsData.length) { alert("No consumption data found"); return; }
     update();
 }
 
@@ -349,18 +256,6 @@ async function loadSheet() {
     } catch (e) { alert("Error: " + e.message); }
 }
 
-// Region toggle
-function setRegion(region) {
-    currentRegion = region;
-    
-    document.getElementById('btnCopenhagen').className = 
-        region === 'copenhagen' ? 'region-btn active-copenhagen' : 'region-btn';
-    document.getElementById('btnRegion').className = 
-        region === 'region' ? 'region-btn active-region' : 'region-btn';
-    
-    update();
-}
-
 // Update dashboard
 function update() {
     if (!hubsData.length) return;
@@ -369,28 +264,7 @@ function update() {
     const drivers = Number(document.getElementById("driversCount").value);
     const per = Number(document.getElementById("hubsPerDriver").value);
     
-    // Filter and prepare data based on selected region
-    const filtered = hubsData
-        .map(h => ({
-            ...h,
-            total: h[currentRegion].total,
-            avg: h[currentRegion].avg,
-            trend: h[currentRegion].trend,
-            current: h[currentRegion].current
-        }))
-        .filter(h => h.total > 0);
-    
-    if (!filtered.length) {
-        document.getElementById("routesContainer").innerHTML = `
-            <div class="empty-state">
-                <h3>📊 No data for ${currentRegion === 'copenhagen' ? 'Copenhagen' : 'Region Hovedstaden'}</h3>
-                <p>Try switching regions or upload new data</p>
-            </div>
-        `;
-        return;
-    }
-    
-    let ranked = [...filtered];
+    let ranked = [...hubsData];
     if (method === "total") ranked.sort((a, b) => b.total - a.total);
     else if (method === "average") ranked.sort((a, b) => b.avg - a.avg);
     else ranked.sort((a, b) => b.trend - a.trend);
@@ -427,8 +301,6 @@ function renderRoutes(routes) {
         return;
     }
     
-    const regionLabel = currentRegion === 'copenhagen' ? '🟡 Copenhagen' : '🟣 Region Hovedstaden';
-    
     let html = "";
     routes.forEach((route, i) => {
         const total = route.reduce((s, h) => s + h.total, 0);
@@ -436,7 +308,7 @@ function renderRoutes(routes) {
         
         html += `
             <div class="route-header">
-                <h3>🚗 Driver ${i + 1} — ${route.length} Hubs (${regionLabel})</h3>
+                <h3>🚗 Driver ${i + 1} — ${route.length} Hubs</h3>
                 <p>Total: ${total.toFixed(0)} bikes | Avg: ${avg.toFixed(1)}/day</p>
             </div>
             <table><thead><tr>
